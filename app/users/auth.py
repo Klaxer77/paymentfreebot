@@ -6,7 +6,7 @@ from app.config import settings
 from app.users.dao import UsersDAO
 from app.exceptions.users.exceptions import UserISerror
 from app.database import async_session_maker
-from app.users.schemas import RefreshSessionCreate, RefreshSessionUpdate, SToken, STokens
+from app.users.schemas import SToken
 from app.exceptions.users.exceptions import InvalidTokenException, TokenExpiredException
 
 
