@@ -22,7 +22,6 @@ async def start(message: types.Message):
         first_name=message.from_user.first_name,
         last_name=message.from_user.last_name,
         username=message.from_user.username,
-        is_premium=message.from_user.is_premium
 ))
     token = create_access_token(message.chat.id)
     

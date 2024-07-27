@@ -13,6 +13,5 @@ class Users(Base):
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=True)
     username = Column(String(255), nullable=False)
-    is_premium = Column(Boolean, nullable=False)
     register_date = Column(Date, nullable=False, default=func.current_date())
     

@@ -28,6 +28,6 @@ services:
     sync: false
   region: oregon
   buildCommand: pip install -r requirements.txt
-  startCommand: gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker
+  startCommand: alembic upgrade head && gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker
     --bind=0.0.0.0:8000
 version: "1"
