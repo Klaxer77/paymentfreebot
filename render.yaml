@@ -1,0 +1,33 @@
+# Exported from Render on 2024-07-27T10:17:07Z
+services:
+- type: web
+  name: paymentfreebot
+  runtime: python
+  repo: https://github.com/Klaxer77/paymentfreebot
+  plan: free
+  envVars:
+  - key: SECRET_KEY
+    sync: false
+  - key: ALGORITHM
+    sync: false
+  - key: WEB_APP_URL
+    sync: false
+  - key: NGROK_TUNNEL_URL
+    sync: false
+  - key: BOT_SECRET_TOKEN
+    sync: false
+  - key: DB_PASS
+    sync: false
+  - key: DB_USER
+    sync: false
+  - key: DB_PORT
+    sync: false
+  - key: DB_NAME
+    sync: false
+  - key: DB_HOST
+    sync: false
+  region: oregon
+  buildCommand: pip install -r requirements.txt
+  startCommand: gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker
+    --bind=0.0.0.0:8000
+version: "1"
