@@ -26,7 +26,8 @@ async def register(user_data: SUserRegisterANDlogin):
         chat_id=user_data.chat_id,
         username=user_data.username, 
         first_name=user_data.first_name,
-        last_name=user_data.last_name
+        last_name=user_data.last_name,
+        is_premium=user_data.is_premium
     )
     return None
    

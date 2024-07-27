@@ -7,12 +7,14 @@ class SUser(BaseModel):
     first_name: str
     last_name: str | None
     username: str
+    is_premium: bool | None
     
 class SUserRegisterANDlogin(BaseModel):
     chat_id: int
     first_name: str
     last_name: str | None
     username: str
+    is_premium: bool | None
     
 class RefreshSessionCreate(BaseModel):
     refresh_token: uuid.UUID
