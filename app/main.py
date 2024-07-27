@@ -12,6 +12,9 @@ app.include_router(users_router)
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
 
+@app.get('/test')
+async def test():
+    return 'Test'
 
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(update: dict):
