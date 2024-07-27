@@ -1,14 +1,7 @@
-from typing import Optional
-import uuid
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from app.exceptions.schemas import SExceptions
-from app.users.depencies import get_current_user, get_token
-from app.users.models import Users
+from fastapi import APIRouter, Depends
+from app.users.depencies import get_current_user
 from app.users.dao import UsersDAO
-from app.users.schemas import STokens, SUser, SUserRegisterANDlogin
-from app.exceptions.users.exceptions import UserISexists, UserISerror
-from app.users.auth import create_access_token
-from app.config import settings
+from app.users.schemas import SUserRegisterANDlogin
 
 router = APIRouter(
     prefix='/auth',

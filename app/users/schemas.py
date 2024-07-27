@@ -16,20 +16,8 @@ class SUserRegisterANDlogin(BaseModel):
     username: str
     is_premium: bool | None
     
-class RefreshSessionCreate(BaseModel):
-    refresh_token: uuid.UUID
-    expires_in: int
-    user_id: uuid.UUID
-    
 class SToken(BaseModel):
     token: str
     
-class STokens(BaseModel):
-    access_token: str
-    refresh_token: uuid.UUID
     
-class RefreshSessionUpdate(RefreshSessionCreate):
-    user_id: Optional[uuid.UUID] = Field(None)
     
-class CsrfSettings(BaseModel):
-  secret_key:str = 'asecrettoeverybody'
