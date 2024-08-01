@@ -6,7 +6,10 @@ from os.path import abspath, dirname
 from alembic import context
 from app.config import settings
 from app.database import Base
+
 from app.users.models import Users
+from app.payment.models import PaymentHistory
+from app.transaction.models import Transactions
 
 
 config = context.config

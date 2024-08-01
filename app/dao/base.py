@@ -23,6 +23,13 @@ class BaseDAO:
             return result.mappings().all()
         
     @classmethod
+    async def find_one(cls, **filter_by):
+        async with async_session_maker() as session:
+            query = select(cls.model).filter_by(**filter_by)
+            result = await session.execute(query)
+            return result.scalars().one()
+        
+    @classmethod
     async def delete(cls, *filter, **filter_by) -> None:
         async with async_session_maker() as session:
             stmt = delete(cls.model).filter(*filter).filter_by(**filter_by)
@@ -43,25 +50,14 @@ class BaseDAO:
             await session.commit()
             
     @classmethod
-    async def update(
-        cls,
-        session: AsyncSession,
-        *where,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
-        # id: Any
-    ) -> Optional[ModelType]:
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.model_dump(exclude_unset=True)
-
-        stmt = (
-            update(cls.model).
-            # where(cls.model.id == id).
-            where(*where).
-            values(**update_data).
-            returning(cls.model)
-        )
-        
-        result = await session.execute(stmt)
-        return result.scalars().one()
+    async def update(cls, *where, **data):
+        async with async_session_maker() as session:
+            query = (
+                update(cls.model).
+                where(*where).
+                values(**data).
+                returning(cls.model)
+            )
+            result = await session.execute(query)
+            await session.commit()
+            return result.scalars().one()

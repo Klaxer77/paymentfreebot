@@ -20,7 +20,6 @@ def get_token(request: Request):
         token = request.headers.get("Authorization")
         if not token:
             raise NoneToken
-        token = token.split(" ")[1]
         return token
     except Exception:
         raise IncorrectTokenHeaders
@@ -38,6 +37,24 @@ async def get_current_user(token: str = Depends(get_token)):
     if not chat_id:
         raise UserIsNotPresentException
     user = await UsersDAO.find_one_or_none(chat_id=int(chat_id))
+    if not user:
+        raise UserIsNotPresentException
+
+    return user
+
+async def get_current_user_method(token: str):
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, settings.ALGORITHM
+        )
+    except ExpiredSignatureError:
+        raise TokenExpiredException
+    except JWTError:
+        raise IncorrectTokenFormatException
+    chat_id: str = payload.get("sub")
+    if not chat_id:
+        raise UserIsNotPresentException
+    user = await UsersDAO.find_user(chat_id=int(chat_id))
     if not user:
         raise UserIsNotPresentException
 

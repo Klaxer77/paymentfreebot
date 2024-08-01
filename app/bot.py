@@ -1,11 +1,9 @@
 import io
 import uuid
 from aiogram import Dispatcher, Bot, types
-from aiogram.utils.web_app import WebAppUser
 from aiogram.filters import Command
-from fastapi import Response
 from app.config import settings
-from aiogram.types import InlineKeyboardButton, KeyboardButton, WebAppInfo, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from app.users.auth import create_access_token
 from app.users.router import register
 from app.users.schemas import SUserRegisterANDlogin
@@ -25,6 +23,7 @@ async def start(message: types.Message):
         is_premium=message.from_user.is_premium
 ))
     token = create_access_token(message.chat.id)
+    print(token)
     
     button = InlineKeyboardButton(
         text="Открыть веб-приложение", 

@@ -1,16 +1,16 @@
-from fastapi import APIRouter, Depends
-from app.users.depencies import get_current_user
+from fastapi import APIRouter, Depends, Request
+from app.users.depencies import get_current_user, get_current_user_method
 from app.users.dao import UsersDAO
-from app.users.schemas import SUserRegisterANDlogin
+from app.users.schemas import SUser, SUserRegisterANDlogin
+from app.config import settings
 
 router = APIRouter(
-    prefix='/auth',
-    tags=['Auth']
+    prefix="/auth",
+    tags=["Auth"]
 )
 
 
-
-@router.post('/register')
+@router.post("/register")
 async def register(user_data: SUserRegisterANDlogin):
     user = await UsersDAO.check_user(username=user_data.username)
     if user: 
@@ -24,7 +24,16 @@ async def register(user_data: SUserRegisterANDlogin):
     )
     return None
    
+@router.get("/all")
+async def all():
+    return await UsersDAO.find_all()
 
-@router.get('/me')
-async def read_user_me(user: str = Depends(get_current_user)):
+@router.get("/me")
+async def read_user_me(request: Request) -> SUser:
+    token = request.cookies.get("token")
+    if settings.MODE in ["DEV", "TEST"]:
+        token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Njg2NTg1NTQifQ.P57B4IgT6OVPYfwgT2apu7B6B2TFW_5i31glrKjXHRw"
+    user = await get_current_user_method(token)
+    if not user:
+        return None
     return user

@@ -15,10 +15,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_access_token(chat_id: int) -> str:
         to_encode = {
-            "sub": str(chat_id),
-            "exp": datetime.utcnow() + timedelta(
-                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            "sub": str(chat_id)
+            # "exp": datetime.utcnow() + timedelta(
+            #     minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         }
         encoded_jwt = jwt.encode(
             to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-        return f'Bearer {encoded_jwt}'
+        return encoded_jwt

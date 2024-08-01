@@ -3,11 +3,15 @@ from aiogram import types, Dispatcher, Bot
 from app.bot import dp, bot
 from app.config import settings
 from app.users.router import router as users_router
+from app.payment.router import router as payment_router
+from app.transaction.router import router as transaction_router
 
 
 app = FastAPI()
 
 app.include_router(users_router)
+app.include_router(payment_router)
+app.include_router(transaction_router)
 
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"

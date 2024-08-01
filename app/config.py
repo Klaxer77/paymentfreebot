@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env.dev")
     
+    MODE: Literal["DEV", "TEST", "PROD"]
     DB_HOST: str
     DB_NAME: str
     DB_PORT: str
@@ -17,7 +18,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 999999999
+    YOOKASSA_SHOPID: int
+    YOOKASSA_SECRETKEY: str
+    YOOKASSA_SECRETKEY_SHLUZ: str
+    YOOKASSA_AGENTID: int
+    
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 99999999
 
     
     def __init__(self, *args, **kwargs):
