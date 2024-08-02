@@ -31,18 +31,20 @@ class STransactionList(BaseModel):
     
     @field_validator("created_at")
     @classmethod
-    def check_created_at(cls, v: datetime):
-        v = v.strftime("%d-%m-%Y %H:%M")
+    def check_created_at(cls, v):
+        if isinstance(v, str):
+            v = datetime.strptime(v, "%d-%m-%Y %H:%M")
         return v
     
     @field_validator("finished_at")
     @classmethod
-    def check_finished_at(cls, v: datetime):
-        v = v.strftime("%d-%m-%Y %H:%M")
+    def check_finished_at(cls, v):
+        if v is not None and isinstance(v, str):
+            v = datetime.strptime(v, "%d-%m-%Y %H:%M")
         return v
     
 class STransaction(BaseModel):
-    id: UUID
+    transaction_id: UUID
     
 class STransactionINFO(BaseModel):
     detail: str

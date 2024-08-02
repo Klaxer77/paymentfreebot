@@ -18,8 +18,9 @@ class SUser(BaseModel):
     
     @field_validator("register_date")
     @classmethod
-    def check_register_date(cls, v: datetime):
-        v = v.strftime("%d-%m-%Y %H:%M")
+    def check_register_date(cls, v):
+        if isinstance(v, str):
+            v = datetime.strptime(v, "%d-%m-%Y %H:%M")
         return v
     
 class SUserRegisterANDlogin(BaseModel):

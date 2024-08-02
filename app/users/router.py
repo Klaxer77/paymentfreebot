@@ -25,7 +25,7 @@ async def register(user_data: SUserRegisterANDlogin):
     return None
    
 @router.get("/all")
-async def all():
+async def all() -> list[SUser]:
     return await UsersDAO.find_all()
 
 @router.get("/me")
@@ -35,5 +35,5 @@ async def read_user_me(request: Request) -> SUser:
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Njg2NTg1NTQifQ.P57B4IgT6OVPYfwgT2apu7B6B2TFW_5i31glrKjXHRw"
     user = await get_current_user_method(token)
     if not user:
-        return None
+        return []
     return user

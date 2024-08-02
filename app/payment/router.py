@@ -71,13 +71,13 @@ async def create(payment: SPaymentCreate) -> SPaymentConfirmURL:
     
 
 @router.post('/payout')
-async def payout(request: Request, payment: SPaymentPayout) -> SPaymentINFO | None:
+async def payout(request: Request, payment: SPaymentPayout) -> SPaymentINFO:
     token = request.cookies.get("token")
     if settings.MODE in ["DEV", "TEST"]:
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Njg2NTg1NTQifQ.P57B4IgT6OVPYfwgT2apu7B6B2TFW_5i31glrKjXHRw"
     user = await get_current_user_method(token)
     if not user:
-        return None
+        return []
     
     if user.balance < payment.amount:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Баланс меньше суммы вывода")
@@ -92,5 +92,5 @@ async def history(request: Request) -> list[SPaymentList]:
         token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Njg2NTg1NTQifQ.P57B4IgT6OVPYfwgT2apu7B6B2TFW_5i31glrKjXHRw"
     user = await get_current_user_method(token)
     if not user:
-        return None
+        return []
     return await PaymentDAO.find_one_or_none(user_id=user.id)
