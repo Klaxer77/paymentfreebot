@@ -17,17 +17,28 @@ class STransactionCreate(BaseModel):
                 status_code=status.HTTP_400_BAD_REQUEST, 
                 detail="Сумма сделки должна быть не менее 100р")
         return v
-    
-class STransactionList(BaseModel):
-    id: UUID
-    sum: Decimal
-    status: str
-    created_at: datetime
-    finished_at: datetime | None
+  
+class SCreator(BaseModel):
+    chat_id: int  
+
+class SUserForTransaction(BaseModel):
+    chat_id: int
     first_name: str
     last_name: str | None
     username: str
     is_premium: bool | None
+
+    
+class STransactionList(BaseModel):
+    id: UUID
+    creator: SCreator
+    sum: Decimal
+    status: str
+    created_at: datetime
+    finished_at: datetime | None
+    initiator: SUserForTransaction
+    user_for: SUserForTransaction
+    
     
     @field_validator("created_at")
     @classmethod

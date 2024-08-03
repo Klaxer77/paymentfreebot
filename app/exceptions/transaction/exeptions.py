@@ -3,59 +3,31 @@ from fastapi import status
 
 class TransactionStatusCanceled(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
-    detail = ""
+    detail = "Сделка уже была отменена"
 
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} уже была отменена"
-        super().__init__()
-        
 class TransactionStatusCanceledTrue(BaseException):
     status_code = status.HTTP_200_OK
-    detail = ""
-
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} отменена"
-        super().__init__()
+    detail = "Сделка отменена"
         
 class TransactionStatusСompleted(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
-    detail = ""
-
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} уже была завершена"
-        super().__init__()
+    detail = "Сделка уже была завершена"
         
 class TransactionStatusActive(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
-    detail = ""
-
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} уже активна"
-        super().__init__()
+    detail = "Сделка уже активна"
         
 class TransactionStatusActiveTrue(BaseException):
     status_code = status.HTTP_201_CREATED
-    detail = ""
-
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} принята"
-        super().__init__()
+    detail = "Сделка принята"
         
 class TransactionStatusPending(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
-    detail = ""
-
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} еще не была принята"
-        super().__init__()
+    detail = "Сделка еще не была принята"
         
 class TransactionСonditionsAreMet(BaseException):
     status_code = status.HTTP_200_OK
-    detail = ""
-
-    def __init__(self, transaction):
-        self.detail = f"Сделка с {transaction.user_for_first_name} успешно завершена"
-        super().__init__()
+    detail = "Сделка успешно завершена"
         
 class TransactionExceedsBalance(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
@@ -77,3 +49,7 @@ class TransactionCreated(BaseException):
 class TransactionNotTheInitiator(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = "Вы не являетесь инициатором сделки"
+    
+class TransactionErrorInitiator(BaseException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Принять завку на сделку может только получатель"

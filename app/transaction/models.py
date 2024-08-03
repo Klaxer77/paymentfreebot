@@ -14,6 +14,7 @@ class Transactions(Base):
     created_at = Column(DateTime, default=datetime.now, server_default=func.now(), nullable=False)
     finished_at = Column(DateTime, nullable=True)
     status = Column(String(255), nullable=False)
+    creator = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
     
 
 

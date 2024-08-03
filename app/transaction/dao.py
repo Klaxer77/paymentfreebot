@@ -32,6 +32,7 @@ class TransactionDAO(BaseDAO):
                 Transactions.id, 
                 Transactions.sum,
                 Transactions.status,
+                Transactions.initiator,
                 user_for_alias.chat_id.label('user_for_chat_id'), 
                 user_for_alias.first_name.label('user_for_first_name'), 
                 initiator_alias.chat_id.label('initiator_chat_id')).where(
@@ -143,7 +144,7 @@ class TransactionDAO(BaseDAO):
     
 
     @classmethod
-    async def add(cls, initiator, user_for, sum, status):
+    async def add(cls, initiator, user_for, sum, status, creator):
         async with async_session_maker() as session:
             user_query = select(Users.balance).where(Users.id == initiator)
             all_sum = select(func.sum(Transactions.sum).label("all_sum")).where(
@@ -159,101 +160,81 @@ class TransactionDAO(BaseDAO):
             if full_sum + sum > current_balance:
                 raise TransactionLimitBalance
             
-            query = insert(cls.model).values(initiator=initiator, user_for=user_for, sum=sum, status=status).returning(cls.model)
+            query = insert(cls.model).values(initiator=initiator, user_for=user_for, sum=sum, status=status, creator=creator).returning(cls.model)
             result = await session.execute(query)
             await session.commit()
             
             return result.scalar_one()
+            
+    @classmethod
+    async def list_with_status(cls, user_id: UUID, statuses: list):
+        async with async_session_maker() as session:
+            initiator_alias = aliased(Users)
+            user_for_alias = aliased(Users)
+            
+            query = select(
+                Transactions.id,
+                Transactions.sum,
+                Transactions.status,
+                Transactions.created_at,
+                Transactions.finished_at,
+                Users.chat_id,
+                initiator_alias.first_name.label('initiator_first_name'),
+                initiator_alias.last_name.label('initiator_last_name'),
+                initiator_alias.username.label('initiator_username'),
+                initiator_alias.is_premium.label('initiator_is_premium'),
+                initiator_alias.chat_id.label('initiator_chat_id'),
+                user_for_alias.chat_id.label('user_for_chat_id'),
+                user_for_alias.first_name.label('user_for_first_name'),
+                user_for_alias.last_name.label('user_for_last_name'),
+                user_for_alias.username.label('user_for_username'),
+                user_for_alias.is_premium.label('user_for_is_premium')
+            ).join(
+                initiator_alias, cls.model.initiator == initiator_alias.id, isouter=True
+            ).join(
+                user_for_alias, cls.model.user_for == user_for_alias.id, isouter=True
+            ).join(
+                Users, cls.model.creator == Users.id, isouter=True
+            ).where(
+                and_(
+                    cls.model.status.in_(statuses),
+                    cls.model.creator == user_id
+                )
+            ).order_by(Transactions.created_at.desc())
+            
+            # print(query.compile(engine, compile_kwargs={"literal_binds": True}))
+            
+            result = await session.execute(query)
+            transactions = result.mappings().all()
+
+            formatted_results = []
+            for transaction in transactions:
+                formatted_results.append({
+                    "id": transaction.id,
+                    "creator": {
+                        "chat_id": transaction.chat_id
+                    },
+                    "sum": transaction.sum,
+                    "status": transaction.status,
+                    "created_at": transaction.created_at,
+                    "finished_at": transaction.finished_at,
+                    "initiator": {
+                        "chat_id": transaction.initiator_chat_id,
+                        "first_name": transaction.initiator_first_name,
+                        "last_name": transaction.initiator_last_name,
+                        "username": transaction.initiator_username,
+                        "is_premium": transaction.initiator_is_premium,
+                    },
+                    "user_for": {
+                        "chat_id": transaction.user_for_chat_id,
+                        "first_name": transaction.user_for_first_name,
+                        "last_name": transaction.user_for_last_name,
+                        "username": transaction.user_for_username,
+                        "is_premium": transaction.user_for_is_premium,
+                    }
+                })
+
+            return formatted_results
+
         
-    @classmethod
-    async def list_with_status(cls, user_id: UUID, status: str):
-        async with async_session_maker() as session:
-            get_initiator_query = select(Transactions.initiator).where(or_(Transactions.initiator == user_id, Transactions.user_for == user_id))
-            result = await session.execute(get_initiator_query)
-            initiator_id = result.scalars().all()
-            if initiator_id[0] == user_id:
-                query = select(
-                    Transactions.id,
-                    Transactions.sum,
-                    Transactions.status, 
-                    Transactions.created_at,
-                    Transactions.finished_at,
-                    Users.first_name, 
-                    Users.last_name, 
-                    Users.username, 
-                    Users.is_premium
-                    ).where(
-                    and_(
-                        cls.model.initiator == user_id,
-                        cls.model.status == status
-                    )
-                ).join(Users, cls.model.user_for == Users.id, isouter=True).order_by(Transactions.created_at.desc())
-                    
-            else:
-                query = select(
-                    Transactions.id,
-                    Transactions.sum,
-                    Transactions.status, 
-                    Transactions.created_at,
-                    Transactions.finished_at,
-                    Users.first_name, 
-                    Users.last_name, 
-                    Users.username, 
-                    Users.is_premium
-                    ).where(
-                    and_(
-                        cls.model.user_for == user_id,
-                        cls.model.status == status
-                    )
-                ).join(Users, cls.model.initiator == Users.id, isouter=True).order_by(Transactions.created_at.desc())
-            result = await session.execute(query)
-            return result.mappings().all()
 
-    
-    @classmethod
-    async def history_list(cls, user_id: UUID):
-        async with async_session_maker() as session:
-            get_initiator_query = select(Transactions.initiator).where(or_(Transactions.initiator == user_id, Transactions.user_for == user_id))
-            result = await session.execute(get_initiator_query)
-            initiator_id = result.scalars().all()
-            if initiator_id[0] == user_id:
-                query = select(
-                    Transactions.id,
-                    Transactions.sum,
-                    Transactions.status, 
-                    Transactions.created_at,
-                    Transactions.finished_at,
-                    Users.first_name,
-                    Users.last_name,
-                    Users.username,
-                    Users.is_premium
-                ).join(
-                    Users, cls.model.user_for == Users.id, isouter=True
-                ).where(
-                    and_(
-                        cls.model.status.in_(["завершено", "отменено"]),
-                        cls.model.initiator == user_id
-                    )
-                ).order_by(Transactions.created_at.desc())
-            else:
-                query = select(
-                    Transactions.id,
-                    Transactions.sum,
-                    Transactions.status, 
-                    Transactions.created_at,
-                    Transactions.finished_at,
-                    Users.first_name, 
-                    Users.last_name, 
-                    Users.username, 
-                    Users.is_premium
-                ).join(
-                    Users, cls.model.initiator == Users.id, isouter=True
-                ).where(
-                    and_(
-                        cls.model.status.in_(["завершено", "отменено"]),
-                        cls.model.user_for == user_id
-                    )
-                ).order_by(Transactions.created_at.desc())
-
-            result = await session.execute(query)
-            return result.mappings().all()
