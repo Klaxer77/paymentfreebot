@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
-class SExceptions(BaseModel):
-    status: int
+
+class SExceptionsINFO(BaseModel):
     detail: str

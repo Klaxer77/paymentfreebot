@@ -1,0 +1,46 @@
+[
+    {
+        "id": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "chat_id": 123456789,
+        "first_name": "John",
+        "last_name": "Doe",
+        "username": "johndoe",
+        "balance": 1000,
+        "frozen_balance": 0.00,
+        "is_premium": true,
+        "register_date": "2023-07-04 10:06:47.2317"
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "chat_id": 987654321,
+        "first_name": "Jane",
+        "last_name": "Smith",
+        "username": "janesmith",
+        "balance": 500.20,
+        "frozen_balance": 350.25,
+        "is_premium": false,
+        "register_date": "2023-07-04 16:06:47.2317"
+      },
+      {
+        "id": "81ca6353-0525-41f2-9faa-d578508e35e8",
+        "chat_id": 555555555,
+        "first_name": "Alice",
+        "last_name": null,
+        "username": "alicej",
+        "balance": 4000.30,
+        "frozen_balance": 1000,
+        "is_premium": true,
+        "register_date": "2023-07-04 10:06:47.2317"
+      },
+      {
+        "id": "c075977d-e434-4cd2-961c-bbdc881fc642",
+        "chat_id": 333333333,
+        "first_name": "David",
+        "last_name": null,
+        "username": "david82",
+        "balance": 300.00,
+        "frozen_balance": 120.50,
+        "is_premium": false,
+        "register_date": "2023-07-04 12:06:47.2317"
+      }
+]

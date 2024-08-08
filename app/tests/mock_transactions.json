@@ -1,0 +1,102 @@
+[
+    {
+        "id": "45cb1307-3413-4b50-8729-9087057f0000",
+        "initiator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "user_for": "550e8400-e29b-41d4-a716-446655440001",
+        "sum": 100,
+        "created_at": "2023-07-04 15:06:47.2317",
+        "finished_at": null,
+        "status": "в ожидании",
+        "creator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5"
+      },
+      {
+        "id": "aff3e27b-ef1f-4185-81ee-f834c6cfc229",
+        "initiator": "550e8400-e29b-41d4-a716-446655440001",
+        "user_for": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "sum": 200.20,
+        "created_at": "2023-07-04 16:06:47.2317",
+        "finished_at": null,
+        "status": "в ожидании",
+        "creator": "550e8400-e29b-41d4-a716-446655440001"
+      },
+      {
+        "id": "8fabb203-6d3b-422e-8d3d-19483fe1a8d5",
+        "initiator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "user_for": "550e8400-e29b-41d4-a716-446655440001",
+        "sum": 200.50,
+        "created_at": "2023-07-04 15:06:47.2317",
+        "finished_at": null,
+        "status": "активно",
+        "creator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5"
+      },
+      {
+        "id": "ed7f5f52-cd45-42cc-af65-ebdbb9fb979d",
+        "initiator": "550e8400-e29b-41d4-a716-446655440001",
+        "user_for": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "sum": 200.60,
+        "created_at": "2023-07-04 16:06:47.2317",
+        "finished_at": null,
+        "status": "активно",
+        "creator": "550e8400-e29b-41d4-a716-446655440001"
+      },
+      {
+        "id": "2b66ea2c-0622-4067-ac9e-5e8337f93f26",
+        "initiator": "81ca6353-0525-41f2-9faa-d578508e35e8",
+        "user_for": "c075977d-e434-4cd2-961c-bbdc881fc642",
+        "sum": 100,
+        "created_at": "2023-07-04 15:06:47.2317",
+        "finished_at": null,
+        "status": "в ожидании",
+        "creator": "81ca6353-0525-41f2-9faa-d578508e35e8"
+      },
+      {
+        "id": "361c17a5-6f27-4791-b175-f320de2a2972",
+        "initiator": "81ca6353-0525-41f2-9faa-d578508e35e8",
+        "user_for": "c075977d-e434-4cd2-961c-bbdc881fc642",
+        "sum": 100,
+        "created_at": "2023-07-04 16:06:47.2317",
+        "finished_at": null,
+        "status": "в ожидании",
+        "creator": "81ca6353-0525-41f2-9faa-d578508e35e8"
+      },
+      {
+        "id": "f480c951-c945-446f-89ee-7e41c8d766ba",
+        "initiator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "user_for": "550e8400-e29b-41d4-a716-446655440001",
+        "sum": 100,
+        "created_at": "2023-07-04 15:06:47.2317",
+        "finished_at": "2023-07-04 16:06:47.2317",
+        "status": "отменено",
+        "creator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5"
+      },
+      {
+        "id": "97d4bc99-f023-44b5-be03-bead05aedf78",
+        "initiator": "550e8400-e29b-41d4-a716-446655440001",
+        "user_for": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "sum": 200.20,
+        "created_at": "2023-07-04 16:06:47.2317",
+        "finished_at": "2023-07-04 17:06:47.2317",
+        "status": "отменено",
+        "creator": "550e8400-e29b-41d4-a716-446655440001"
+      },
+      {
+        "id": "5f102d47-0623-49a8-8841-79db2e2b82c6",
+        "initiator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "user_for": "550e8400-e29b-41d4-a716-446655440001",
+        "sum": 100,
+        "created_at": "2023-07-04 11:06:47.2317",
+        "finished_at": "2023-07-04 12:06:47.2317",
+        "status": "завершено",
+        "creator": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5"
+      },
+      {
+        "id": "40372d9e-5c9c-4c2f-9c5d-bb9624a79907",
+        "initiator": "550e8400-e29b-41d4-a716-446655440001",
+        "user_for": "1ffc4b44-e475-4f78-8718-b5203aaa9ba5",
+        "sum": 200.20,
+        "created_at": "2023-07-04 12:06:47.2317",
+        "finished_at": "2023-07-04 13:06:47.2317",
+        "status": "завершено",
+        "creator": "550e8400-e29b-41d4-a716-446655440001"
+      }
+]

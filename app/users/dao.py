@@ -1,84 +1,232 @@
-from decimal import Decimal
 import uuid
-from app.dao.base import BaseDAO, ModelType
-from app.exceptions.users.exceptions import UserNotFound
-from app.users.models import Users
-from app.database import async_session_maker
-from sqlalchemy import select, insert, delete, update
-from sqlalchemy.exc import SQLAlchemyError
-from app.dao.base import CreateSchemaType
-from typing import Any, Dict, Optional, TypeVar, Union
+from decimal import Decimal
+from typing import Optional
+from uuid import UUID
+
+from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
+
+from app.dao.base import BaseDAO
+from app.database import async_session_maker
+from app.exceptions.base import ServerError
+from app.exceptions.users.exceptions import UserNotFound
+from app.rating.models import Ratings
+from app.users.models import Users
+from app.logger import logger
 from app.database import engine
+
 
 class UsersDAO(BaseDAO):
     model = Users
-    
+
+    @classmethod
+    async def update_register(cls, user_id: UUID, **data):
+        try:
+            extra = dict(data)
+            logger.debug(msg=f"user_id = {user_id}", extra=extra)
+            async with async_session_maker() as session:
+                query = update(cls.model).where(cls.model.id == user_id).values(**data)
+                logger.debug(
+                    query.compile(engine, compile_kwargs={"literal_binds": True})
+                )
+                await session.execute(query)
+                await session.commit()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot update register"
+            extra = dict(data)
+            logger.error(msg=f"{msg}, user_id = {user_id}", extra=extra, exc_info=True)
+            raise ServerError
+
     @classmethod
     async def update_balance_up(cls, chat_id: int, balance: str):
-        async with async_session_maker() as session:
-            query = (
-                update(cls.model)
-                .where(cls.model.chat_id == chat_id)
-                .values(balance=cls.model.balance + Decimal(balance))
-            )
-            await session.execute(query)
-            await session.commit()
-        
+        try:
+            logger.debug(chat_id,balance)
+            async with async_session_maker() as session:
+                query = (
+                    update(cls.model)
+                    .where(cls.model.chat_id == chat_id)
+                    .values(balance=cls.model.balance + Decimal(balance))
+                )
+                logger.debug(
+                    query.compile(engine, compile_kwargs={"literal_binds": True})
+                )
+                await session.execute(query)
+                await session.commit()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot update balance up"
+            extra = {"chat_id": chat_id, "balance": balance}
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
+
     @classmethod
     async def update_balance_down(cls, chat_id: int, balance: str):
-        async with async_session_maker() as session:
-            query = (
-                update(cls.model)
-                .where(cls.model.chat_id == chat_id)
-                .values(balance=cls.model.balance - Decimal(balance))
-            )
-            await session.execute(query)
-            await session.commit()
-    
+        try:
+            logger.debug(chat_id,balance)
+            async with async_session_maker() as session:
+                query = (
+                    update(cls.model)
+                    .where(cls.model.chat_id == chat_id)
+                    .values(balance=cls.model.balance - Decimal(balance))
+                )
+                logger.debug(
+                    query.compile(engine, compile_kwargs={"literal_binds": True})
+                )
+                await session.execute(query)
+                await session.commit()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot update balance down"
+            extra = {"chat_id": chat_id, "balance": balance}
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
+
     @classmethod
-    async def get_user(cls, user_id: uuid.UUID) -> Users:
-        async with async_session_maker() as session:
-            db_user = await UsersDAO.find_one_or_none(session, id=user_id)
-            if db_user is None:
-                raise UserNotFound
-            return db_user
-        
-    
+    async def get_user(cls, user_id: UUID) -> Users:
+        try:
+            logger.debug(user_id)
+            async with async_session_maker() as session:
+                db_user = await UsersDAO.find_one_or_none(session, id=user_id)
+                if db_user is None:
+                    raise UserNotFound
+                return db_user
+            
+        except UserNotFound:
+            raise UserNotFound
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot get user"
+            extra = {"user_id": user_id}
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
+
     @classmethod
-    async def find_one_or_none(cls, session: AsyncSession, *filter, **filter_by) -> Optional[ModelType]:
-        stmt = select(cls.model).filter(*filter).filter_by(**filter_by)
-        result = await session.execute(stmt)
-        return result.scalars().one_or_none()
-    
+    async def find_one_or_none(cls, session: AsyncSession, *filter, **filter_by):
+        try:
+            extra = dict(filter_by)
+            logger.debug(msg="debug", extra=extra)
+            query = select(cls.model).filter(*filter).filter_by(**filter_by)
+            logger.debug(query.compile(engine, compile_kwargs={"literal_binds": True}))
+            result = await session.execute(query)
+            return result.scalars().one_or_none()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot find one or none"
+            extra = dict(filter_by)
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
+
     @classmethod
     async def find_user(cls, **filter_by):
-        async with async_session_maker() as session:
-            stmt = select(cls.model).filter_by(**filter_by)
-            result = await session.execute(stmt)
-            return result.scalars().one_or_none()
-    
+        try:
+            extra = dict(filter_by)
+            logger.debug(msg="debug", extra=extra)
+            async with async_session_maker() as session:
+                query = select(cls.model).filter_by(**filter_by)
+                logger.debug(
+                    query.compile(engine, compile_kwargs={"literal_binds": True})
+                )
+                result = await session.execute(query)
+                return result.scalars().one_or_none()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot find user"
+            extra = dict(filter_by)
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
+
     @classmethod
     async def check_user(cls, **filter_by):
-        async with async_session_maker() as session:
-            stmt = select(cls.model).filter_by(**filter_by)
-            result = await session.execute(stmt)
-            return result.scalars().one_or_none()
-        
-    @classmethod    
-    async def add(cls, **data):
-        async with async_session_maker() as session:
-            query = insert(cls.model).values(**data)
-            await session.execute(query)
-            await session.commit()
+        try:
+            extra = dict(filter_by)
+            logger.debug(msg="debug", extra=extra)
+            async with async_session_maker() as session:
+                query = select(cls.model).filter_by(**filter_by)
+                logger.debug(
+                    query.compile(engine, compile_kwargs={"literal_binds": True})
+                )
+                result = await session.execute(query)
+                return result.scalars().one_or_none()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot check user"
+            extra = dict(filter_by)
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
+
+    @classmethod
+    async def add(cls, score: int, chat_id: int, username: str, first_name: str, last_name: str, is_premium: bool):
+        try:
+            extra = {
+                "score": score,
+                "chat_id": chat_id, 
+                "username": username, 
+                "first_name": first_name, 
+                "last_name": last_name,
+                "is_premium": is_premium
+            }
+            logger.debug(score,chat_id,username,first_name,last_name,is_premium)
             
-    
-    
-    
-    # @classmethod
-    # async def find_one_or_none(cls, **filter_by):
-    #     async with async_session_maker() as session:
-    #         query = select(cls.model.__table__.columns).filter_by(**filter_by)
-    #         result = await session.execute(query)
-    #         return result.mappings().one_or_none()
-        
+            async with async_session_maker() as session:
+                insert_user = insert(cls.model).values(
+                    chat_id=chat_id,
+                    username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_premium=is_premium                                   
+                )
+                await session.execute(insert_user)
+                
+                get_user_id = select(cls.model).where(cls.model.chat_id == chat_id)
+                result = await session.execute(get_user_id)
+                user = result.scalar_one_or_none()
+                
+                insert_rating = insert(Ratings).values(rated_user_id=user.id, score=score)
+                await session.execute(insert_rating)
+                
+                await session.commit()
+
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            if isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": cannot add"
+            extra = {
+                "chat_id": chat_id, 
+                "username": username, 
+                "first_name": first_name, 
+                "last_name": last_name,
+                "is_premium": is_premium
+            }
+            logger.error(msg=msg, extra=extra, exc_info=True)
+            raise ServerError
