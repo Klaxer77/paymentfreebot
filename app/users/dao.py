@@ -11,6 +11,7 @@ from app.dao.base import BaseDAO
 from app.database import async_session_maker
 from app.exceptions.base import ServerError
 from app.exceptions.users.exceptions import UserNotFound
+from app.notification.models import Notifications
 from app.rating.models import Ratings
 from app.users.models import Users
 from app.logger import logger
@@ -96,14 +97,52 @@ class UsersDAO(BaseDAO):
             raise ServerError
 
     @classmethod
-    async def get_user(cls, user_id: UUID) -> Users:
+    async def get_user(cls, user_id: UUID):
         try:
             logger.debug(user_id)
             async with async_session_maker() as session:
-                db_user = await UsersDAO.find_one_or_none(session, id=user_id)
-                if db_user is None:
-                    raise UserNotFound
-                return db_user
+                query = select(
+                    Users.id,
+                    Users.chat_id,
+                    Users.rating,
+                    Users.first_name,
+                    Users.last_name,
+                    Users.username,
+                    Users.balance,
+                    Users.frozen_balance,
+                    Users.register_date,
+                    Users.is_premium,
+                    Notifications.accept,
+                    Notifications.canceled,
+                    Notifications.create,
+                    Notifications.conditions_are_met
+                ).where(Users.id == user_id).join(
+                        Notifications,
+                        Notifications.user_id == Users.id,
+                        isouter=True,
+                    )
+                result = await session.execute(query)
+                users = result.mappings().all()
+                user = users[0]
+                formatted_result = {
+                "id": user.id,
+                "chat_id": user.chat_id,
+                "rating": user.rating,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "username": user.username,
+                "balance": user.balance,
+                "frozen_balance": user.frozen_balance,
+                "is_premium": user.is_premium,
+                "register_date": user.register_date,
+                "notification": {
+                    "accept": user.accept,
+                    "canceled": user.canceled,
+                    "create": user.create,
+                    "conditions_are_met": user.conditions_are_met
+                    }
+                }
+                return formatted_result
             
         except UserNotFound:
             raise UserNotFound
@@ -203,8 +242,8 @@ class UsersDAO(BaseDAO):
                     first_name=first_name,
                     last_name=last_name,
                     is_premium=is_premium                                   
-                )
-                await session.execute(insert_user)
+                ).returning(Users.id)
+                new_user = await session.execute(insert_user)
                 
                 get_user_id = select(cls.model).where(cls.model.chat_id == chat_id)
                 result = await session.execute(get_user_id)
@@ -214,6 +253,7 @@ class UsersDAO(BaseDAO):
                 await session.execute(insert_rating)
                 
                 await session.commit()
+                return new_user.mappings().one_or_none()
 
         except (SQLAlchemyError, Exception) as e:
             if isinstance(e, SQLAlchemyError):

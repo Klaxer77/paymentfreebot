@@ -10,6 +10,7 @@ from app.dao.base import BaseDAO
 from app.database import async_session_maker
 from app.exceptions.base import ServerError
 from app.exceptions.transaction.exeptions import TransactionLimitBalance
+from app.notification.models import Notifications
 from app.rating.models import Ratings
 from app.rating.router import get_rating
 from app.transaction.models import Transactions
@@ -29,6 +30,8 @@ class TransactionDAO(BaseDAO):
             async with async_session_maker() as session:
                 initiator_alias = aliased(Users)
                 user_for_alias = aliased(Users)
+                notification_user_for_alias = aliased(Notifications)
+                notification_initiator_alias = aliased(Notifications)
 
                 query = (
                     select(
@@ -38,8 +41,19 @@ class TransactionDAO(BaseDAO):
                         Transactions.status,
                         Transactions.initiator,
                         Transactions.user_for,
+                        
+                        notification_user_for_alias.conditions_are_met.label("notification_user_for_conditions_are_met"),
+                        notification_initiator_alias.conditions_are_met.label("notification_initiator_conditions_are_met"),
+                        notification_user_for_alias.accept.label("notification_user_for_accept"),
+                        notification_initiator_alias.accept.label("notification_initiator_accept"),
+                        notification_initiator_alias.canceled.label("notification_initiator_canceled"),
+                        notification_user_for_alias.canceled.label("notification_user_for_canceled"),
+                        notification_user_for_alias.create.label("notification_user_for_create"),
+                        notification_initiator_alias.create.label("notification_initiator_create"),
+                        
                         user_for_alias.chat_id.label("user_for_chat_id"),
                         user_for_alias.first_name.label("user_for_first_name"),
+                        user_for_alias.username.label("user_for_username"),
                         initiator_alias.chat_id.label("initiator_chat_id"),
                     )
                     .where(Transactions.id == transaction_id)
@@ -51,6 +65,16 @@ class TransactionDAO(BaseDAO):
                     .join(
                         initiator_alias,
                         Transactions.initiator == initiator_alias.id,
+                        isouter=True,
+                    )
+                    .join(
+                        notification_user_for_alias,
+                        notification_user_for_alias.user_id == user_for_alias.id,
+                        isouter=True,
+                    )
+                    .join(
+                        notification_initiator_alias,
+                        notification_initiator_alias.user_id == initiator_alias.id,
                         isouter=True,
                     )
                 )
@@ -95,7 +119,6 @@ class TransactionDAO(BaseDAO):
                     update(Transactions)
                     .where(Transactions.id == transaction_id)
                     .values(finished_at=datetime.now(), status=status)
-                    .returning(Transactions)
                 )
                 update_frozen_balance_down = (
                     update(Users)
@@ -106,13 +129,15 @@ class TransactionDAO(BaseDAO):
                     update(Users)
                     .where(Users.chat_id == chat_id_user_for)
                     .values(balance=Users.balance + Decimal(balance) - Decimal(commission))
+                    .returning(Users.balance)
                 )
                 await session.execute(update_status_and_finished_date)
-                await session.execute(update_balance_up)
+                query = await session.execute(update_balance_up)
                 await session.execute(update_frozen_balance_down)
                 await session.execute(insert_rating_initiator)
                 await session.execute(insert_rating_user_for)
                 await session.commit()
+                return query.scalar_one()
 
         except (SQLAlchemyError, Exception) as e:
             if isinstance(e, SQLAlchemyError):
@@ -136,7 +161,6 @@ class TransactionDAO(BaseDAO):
     async def update_rating(user_id: UUID):
         async with async_session_maker() as session:
             rating = await get_rating(user_id=user_id)
-            print(rating["rating"])
             update_rating_user = update(Users).where(Users.id==user_id).values(rating=rating["rating"])
             await session.execute(update_rating_user)
             await session.commit()

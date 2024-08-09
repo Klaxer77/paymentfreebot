@@ -16,25 +16,26 @@ class SUserListALL(BaseModel):
 class SUserDetail(SUserListALL):
     pass
 
+class SNotification(BaseModel):
+    accept: bool
+    canceled: bool
+    create: bool
+    conditions_are_met: bool
+
 
 class SUser(BaseModel):
     id: UUID
-    rating: float
     chat_id: int
+    rating: float
     first_name: str
     last_name: str | None
     username: str
-    frozen_balance: Decimal
     balance: Decimal
-    register_date: datetime
+    frozen_balance: Decimal
     is_premium: bool | None
+    register_date: datetime
+    notification: SNotification
 
-    @field_validator("register_date")
-    @classmethod
-    def check_register_date(cls, v):
-        if isinstance(v, str):
-            v = datetime.strptime(v, "%d-%m-%Y %H:%M")
-        return v
 
 
 class SUserRegisterANDlogin(BaseModel):

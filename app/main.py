@@ -13,6 +13,7 @@ from app.exceptions.users.exceptions import AccessTokenException
 from app.payment.router import router as payment_router
 from app.transaction.router import router as transaction_router
 from app.rating.router import router as rating_router
+from app.notification.router import router as notification_router
 from app.users.auth import create_access_token
 from app.users.dao import UsersDAO
 from app.users.router import router as users_router
@@ -21,19 +22,13 @@ from app.utils.mock import mock_script
 from app.logger import logger
 from app.exceptions.users.exceptions import UserNotFound
 
-openapi_url = None
-redoc_url = None
-
-if settings.MODE != "PROD":
-    openapi_url = "/openapi.json"
-    redoc_url = "/redoc"
-
-app = FastAPI(openapi_url=openapi_url, redoc_url=redoc_url)
+app = FastAPI()
 
 app.include_router(users_router)
 app.include_router(payment_router)
 app.include_router(transaction_router)
 app.include_router(rating_router)
+app.include_router(notification_router)
 
 origins = [
     "http://localhost:3000",
@@ -53,14 +48,24 @@ app.add_middleware(
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
 
+TELEGRAM_IPS = [
+    "149.154.160.0/20",
+    "91.108.6.94"
+]
+
 
 @app.post(WEBHOOK_PATH)
-async def bot_webhook(update: dict):
+async def bot_webhook(request: Request, update: dict):
     """
 
     `Only Webhook URL`
 
     """
+    client_host = request.client.host
+    logger.debug(client_host)
+    if client_host not in TELEGRAM_IPS:
+        logger.error(f"{client_host} - недоступный ips")
+        raise AccessTokenException
     if not update:
         return None
     telegram_update = types.Update(**update)
@@ -97,9 +102,8 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
 
     """
     origin = request.headers.get('origin')
-    origin_list = ["http://localhost:3000","http://localhost:8000",settings.NGROK_TUNNEL_URL]
-    if settings.MODE == "PROD":
-        origin_list = [""] #TODO добавить свой список в проде
+    origin_list = ["http://localhost:3000","http://localhost:8000",settings.NGROK_TUNNEL_URL] 
+    #TODO добавить свой список в проде для фронтенда
     if origin not in origin_list:
         raise AccessTokenException
     try:

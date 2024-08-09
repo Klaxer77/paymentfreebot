@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
@@ -33,7 +34,7 @@ from app.users.depencies import get_current_user
 from app.users.schemas import SUser
 
 
-router = APIRouter(prefix="/transaction", tags=["Transaction"])
+router = APIRouter(prefix="/transaction", tags=["Transactions"])
 
 
 @router.post("/create")
@@ -78,16 +79,13 @@ async def create(
         status="в ожидании",
         creator=user.id,
     )
-    user_for = await UsersDAO.get_user(model.user_for)
-    send_user = user_for.chat_id
 
-    if settings.MODE in ["DEV", "TEST"]:
-        send_user = user.chat_id
-
-    await bot.send_message(
-        send_user,
-        text=f"⭐️ У вас новая заявка на сделку с {user.first_name} | @{user.username}\nСумма: {model.sum}",
-    )
+    send_user = user_for["chat_id"]
+    if user_for["notification"]["create"] == True:
+        await bot.send_message(
+            send_user,
+            text=f"⏳ У вас новая заявка на сделку с {user.first_name} | @{user.username}\nСумма: {model.sum}",
+        )
     raise TransactionCreated
 
 
@@ -119,6 +117,7 @@ async def canceled(
     current_transaction = await TransactionDAO.get_users(
         transaction_id=transaction.transaction_id
     )
+
     if not current_transaction:
         raise TransactionNotFound
     if current_transaction.status == "отменено":
@@ -135,7 +134,25 @@ async def canceled(
             balance=current_transaction.sum,
         )
         await TransactionDAO.update_rating(user_id=user.id)
-        raise TransactionStatusCanceledTrue
+
+        if str(user.id) == str(current_transaction.initiator) and current_transaction.notification_user_for_canceled == True:
+            send_user = current_transaction.user_for_chat_id
+            await bot.send_message(
+                send_user,
+                text=f"🚫 {user.first_name} | @{user.username} отменил активную сделку\n"
+                f"Сумма сделки составляла: {current_transaction.sum}р, средства были возвращены без учета комиссии"
+            )
+            raise TransactionStatusCanceledTrue
+
+        if current_transaction.notification_initiator_canceled == True:
+            send_user = current_transaction.initiator_chat_id
+            await bot.send_message(
+                send_user,
+                text=f"🚫 {current_transaction.user_for_first_name} | @{current_transaction.user_for_username} отменил активную сделку\n"
+                f"Сумма сделки составляла: {current_transaction.sum}р, средства были возвращены без учета комиссии"
+            )
+            raise TransactionStatusCanceledTrue
+
     await TransactionDAO.update_status(
         transaction_id=transaction.transaction_id, status="отменено"
     )
@@ -188,6 +205,12 @@ async def accept(
         chat_id_user_for=current_transaction.user_for_chat_id,
         balance=current_transaction.sum,
     )
+    send_user = current_transaction.initiator_chat_id
+    if current_transaction.notification_initiator_accept == True:
+        await bot.send_message(
+            send_user,
+            text=f"✅ {current_transaction.user_for_first_name} | @{current_transaction.user_for_username} принял вашу заявку на сделку\nСумма: {current_transaction.sum}",
+        )
     raise TransactionStatusActiveTrue
 
 
@@ -229,7 +252,7 @@ async def conditions_are_met(
         raise TransactionStatusCanceled
     if user.chat_id != current_transaction.initiator_chat_id:
         raise TransactionNotTheInitiator
-    await TransactionDAO.conditions_are_met(
+    update_transaction = await TransactionDAO.conditions_are_met(
         initiator=current_transaction.initiator,
         user_for=current_transaction.user_for,
         transaction_id=transaction.transaction_id,
@@ -238,6 +261,13 @@ async def conditions_are_met(
         chat_id_user_for=current_transaction.user_for_chat_id,
         balance=current_transaction.sum,
     )
+    send_user = current_transaction.user_for_chat_id
+    if current_transaction.notification_user_for_conditions_are_met == True:
+        await bot.send_message(
+            send_user,
+            text=f"⭐️ Сделка с {user.first_name} | @{user.username} была успешно завершена\n"
+            f"Баланс пополнен на {update_transaction}р с учетом комиссии"
+        )
     await TransactionDAO.update_rating(user_id=user.id)
     raise TransactionСonditionsAreMet
 

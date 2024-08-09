@@ -17,7 +17,7 @@ from app.users.depencies import get_current_user
 from app.users.schemas import SUser
 from app.utils.translator import translator
 
-router = APIRouter(prefix="/payment", tags=["Payment"])
+router = APIRouter(prefix="/payment", tags=["Payments"])
 
 
 @router.post("/webhook/payout")

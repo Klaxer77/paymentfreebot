@@ -11,6 +11,7 @@ from app.payment.models import PaymentHistory  # noqa
 from app.transaction.models import Transactions  # noqa
 from app.users.models import Users  # noqa
 from app.rating.models import Ratings  # noqa
+from app.notification.models import Notifications  # noqa
 
 config = context.config
 

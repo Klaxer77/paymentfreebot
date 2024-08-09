@@ -37,6 +37,7 @@ user: SUser = Depends(get_current_user)
 
     Возвращает актуальную информацию о профиле пользователя.
     """
+    user = await UsersDAO.get_user(user_id=user.id)
     return user
 
 @router.get("/{user_id}")

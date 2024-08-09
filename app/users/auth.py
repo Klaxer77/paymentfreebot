@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from app.config import settings
 from app.exceptions.schemas import SExceptionsINFO
 from app.logger import logger
+from app.notification.dao import NotificationDAO
 from app.users.dao import UsersDAO
 from app.users.schemas import SUserRegisterANDlogin
 
@@ -24,7 +25,7 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
     user = await UsersDAO.check_user(username=user_data.username)
 
     if user is None:
-        await UsersDAO.add(
+        new_user = await UsersDAO.add(
             score=5,
             chat_id=user_data.chat_id,
             username=user_data.username,
@@ -32,6 +33,7 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
             last_name=user_data.last_name,
             is_premium=user_data.is_premium,
         )
+        await NotificationDAO.add(user_id=new_user.id)
         return None
 
     if any(
