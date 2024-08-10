@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import insert, select, update
+from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -16,6 +17,7 @@ from app.rating.models import Ratings
 from app.users.models import Users
 from app.logger import logger
 from app.database import engine
+from app.users.schemas import SUser
 
 
 class UsersDAO(BaseDAO):
@@ -102,48 +104,19 @@ class UsersDAO(BaseDAO):
             logger.debug(user_id)
             async with async_session_maker() as session:
                 query = select(
-                    Users.id,
-                    Users.chat_id,
-                    Users.rating,
-                    Users.first_name,
-                    Users.last_name,
-                    Users.username,
-                    Users.balance,
-                    Users.frozen_balance,
-                    Users.register_date,
-                    Users.is_premium,
-                    Notifications.accept,
-                    Notifications.canceled,
-                    Notifications.create,
-                    Notifications.conditions_are_met
-                ).where(Users.id == user_id).join(
-                        Notifications,
-                        Notifications.user_id == Users.id,
-                        isouter=True,
-                    )
+                    Users
+                ).options(joinedload(Users.notification)).where(Users.id == user_id)
                 result = await session.execute(query)
-                users = result.mappings().all()
-                user = users[0]
-                formatted_result = {
-                "id": user.id,
-                "chat_id": user.chat_id,
-                "rating": user.rating,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "username": user.username,
-                "balance": user.balance,
-                "frozen_balance": user.frozen_balance,
-                "is_premium": user.is_premium,
-                "register_date": user.register_date,
-                "notification": {
-                    "accept": user.accept,
-                    "canceled": user.canceled,
-                    "create": user.create,
-                    "conditions_are_met": user.conditions_are_met
-                    }
-                }
-                return formatted_result
-            
+                result_orm = result.unique().scalars().all()
+                
+                if result_orm == []:
+                    raise UserNotFound
+                
+                user_instance = result_orm[0]
+                
+                result_dto = SUser.model_validate(user_instance, from_attributes=True)
+                return result_dto
+                
         except UserNotFound:
             raise UserNotFound
         except (SQLAlchemyError, Exception) as e:
@@ -270,3 +243,5 @@ class UsersDAO(BaseDAO):
             }
             logger.error(msg=msg, extra=extra, exc_info=True)
             raise ServerError
+        
+                

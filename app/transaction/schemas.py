@@ -35,13 +35,13 @@ class SUserForTransaction(BaseModel):
 
 class STransactionList(BaseModel):
     id: UUID
-    creator: SCreator
+    user_creator: SCreator
     sum: Decimal
     status: str
     created_at: datetime
     finished_at: datetime | None
-    initiator: SUserForTransaction
-    user_for: SUserForTransaction
+    user_initiator: SUserForTransaction
+    user_user_for: SUserForTransaction
 
     @field_validator("created_at")
     @classmethod

@@ -3,6 +3,7 @@ from fastapi import status
 from app.exceptions.base import BaseException
 
 
+
 class TransactionNotFound(BaseException):
     status_code = status.HTTP_404_NOT_FOUND
     detail = "Такой сделки не существует"
@@ -71,3 +72,10 @@ class TransactionNotTheInitiator(BaseException):
 class TransactionErrorInitiator(BaseException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = "Принять завку на сделку может только получатель"
+    
+class TransactionErrorInitiatorOrUserFor(BaseException):
+    status_code = status.HTTP_403_FORBIDDEN
+    detail = "Вы не являетесь участником сделки"
+    
+    
+    

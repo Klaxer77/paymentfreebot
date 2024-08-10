@@ -14,17 +14,19 @@ from app.notification.models import Notifications
 from app.rating.models import Ratings
 from app.rating.router import get_rating
 from app.transaction.models import Transactions
+from app.transaction.schemas import STransactionList
 from app.users.models import Users
 from app.logger import logger
 from app.database import engine
 from app.config import settings
-
+from sqlalchemy.orm import selectinload, joinedload
 
 class TransactionDAO(BaseDAO):
     model = Transactions
 
     @staticmethod
     async def get_users(transaction_id: UUID):
+        #FIXME костыль, который надо переписать с relashionship, но после тестов, так как часто используемый
         try:
             logger.debug(transaction_id)
             async with async_session_maker() as session:
@@ -366,39 +368,12 @@ class TransactionDAO(BaseDAO):
         try:
             logger.debug(user_id,statuses)
             async with async_session_maker() as session:
-                initiator_alias = aliased(Users)
-                user_for_alias = aliased(Users)
-
                 query = (
                     select(
-                        Transactions.id,
-                        Transactions.sum,
-                        Transactions.status,
-                        Transactions.created_at,
-                        Transactions.finished_at,
-                        Users.chat_id,
-                        initiator_alias.first_name.label("initiator_first_name"),
-                        initiator_alias.last_name.label("initiator_last_name"),
-                        initiator_alias.username.label("initiator_username"),
-                        initiator_alias.is_premium.label("initiator_is_premium"),
-                        initiator_alias.chat_id.label("initiator_chat_id"),
-                        user_for_alias.chat_id.label("user_for_chat_id"),
-                        user_for_alias.first_name.label("user_for_first_name"),
-                        user_for_alias.last_name.label("user_for_last_name"),
-                        user_for_alias.username.label("user_for_username"),
-                        user_for_alias.is_premium.label("user_for_is_premium"),
+                        Transactions
+                    ).options(selectinload(Transactions.user_initiator)).options(selectinload(Transactions.user_user_for)).options(
+                        selectinload(Transactions.user_creator)
                     )
-                    .join(
-                        initiator_alias,
-                        cls.model.initiator == initiator_alias.id,
-                        isouter=True,
-                    )
-                    .join(
-                        user_for_alias,
-                        cls.model.user_for == user_for_alias.id,
-                        isouter=True,
-                    )
-                    .join(Users, cls.model.creator == Users.id, isouter=True)
                     .where(
                         or_(
                             cls.model.initiator == user_id,
@@ -416,35 +391,9 @@ class TransactionDAO(BaseDAO):
                 )
 
                 result = await session.execute(query)
-                transactions = result.mappings().all()
-
-                formatted_results = [
-                    {
-                        "id": transaction.id,
-                        "creator": {"chat_id": transaction.chat_id},
-                        "sum": transaction.sum,
-                        "status": transaction.status,
-                        "created_at": transaction.created_at,
-                        "finished_at": transaction.finished_at,
-                        "initiator": {
-                            "chat_id": transaction.initiator_chat_id,
-                            "first_name": transaction.initiator_first_name,
-                            "last_name": transaction.initiator_last_name,
-                            "username": transaction.initiator_username,
-                            "is_premium": transaction.initiator_is_premium,
-                        },
-                        "user_for": {
-                            "chat_id": transaction.user_for_chat_id,
-                            "first_name": transaction.user_for_first_name,
-                            "last_name": transaction.user_for_last_name,
-                            "username": transaction.user_for_username,
-                            "is_premium": transaction.user_for_is_premium,
-                        },
-                    }
-                    for transaction in transactions
-                ]
-
-                return formatted_results
+                result_orm = result.scalars().all()
+                result_dto = [STransactionList.model_validate(row, from_attributes=True) for row in result_orm]
+                return result_dto
 
         except (SQLAlchemyError, Exception) as e:
             if isinstance(e, SQLAlchemyError):
@@ -455,3 +404,4 @@ class TransactionDAO(BaseDAO):
             extra = {"user_id": user_id, "statuses": statuses}
             logger.error(msg=msg, extra=extra, exc_info=True)
             raise ServerError
+        

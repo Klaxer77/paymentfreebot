@@ -53,7 +53,6 @@ TELEGRAM_IPS = [
     "91.108.6.94"
 ]
 
-
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(request: Request, update: dict):
     """

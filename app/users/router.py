@@ -40,7 +40,8 @@ user: SUser = Depends(get_current_user)
     user = await UsersDAO.get_user(user_id=user.id)
     return user
 
-@router.get("/{user_id}")
+@router.get("/detail/{user_id}")
 async def user_detail(user_id: UUID) -> SUserDetail | SExceptionsINFO:
     user = await UsersDAO.get_user(user_id=user_id)
     return user
+
