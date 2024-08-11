@@ -303,13 +303,14 @@ async def conditions_are_met(
         balance=current_transaction.sum,
     )
     commission = current_transaction.sum * Decimal((settings.COMMISION_PERCENTAGE / 100)) #FIXME посмотреть все ли норм
+    commision_result = current_transaction.sum - commission
     send_user = current_transaction.user_for_chat_id
     if current_transaction.notification_user_for_conditions_are_met == True:
         try:
             await bot.send_message(
                 send_user,
                 text=f"⭐️ Сделка с {user.first_name} | @{user.username} была успешно завершена\n"
-                f"Баланс пополнен на {commission}р с учетом комиссии {settings.COMMISION_PERCENTAGE}%"
+                f"Баланс пополнен на {round(commision_result, 4)}р с учетом комиссии {settings.COMMISION_PERCENTAGE}%"
             )
         except TelegramBadRequest as e:
             extra = {
@@ -347,7 +348,7 @@ async def list_with_status(
     Возможные статусы: _в ожидании_, _завершено_, _активно_, _отменено_.
     """
     if statuses is None:
-        statuses = "в ожидании,отменено,активно,Sзавершено"
+        statuses = "в ожидании,отменено,активно,завершено"
     status_list = [status.strip() for status in statuses.split(",")]
 
     return await TransactionDAO.list_with_status(user_id=user.id, statuses=status_list)
