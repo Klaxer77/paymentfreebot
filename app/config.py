@@ -28,8 +28,6 @@ class Settings(BaseSettings):
     YOOKASSA_SECRETKEY_SHLUZ: str
     YOOKASSA_AGENTID: int
 
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 99999999
-
     COMMISION_PERCENTAGE: int
 
     def __init__(self, *args, **kwargs):

@@ -42,6 +42,18 @@ user: SUser = Depends(get_current_user)
 
 @router.get("/detail/{user_id}")
 async def user_detail(user_id: UUID) -> SUserDetail | SExceptionsINFO:
+    """
+    **Просмотр конкретного пользователя**
+    
+    **Args**
+    
+    `user_id` - id просматриваемого пользователя
+    
+    **Returns**
+    
+    Возвращает информацию о просматриваемом пользователе
+     
+    """
     user = await UsersDAO.get_user(user_id=user_id)
     return user
 

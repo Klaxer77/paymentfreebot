@@ -32,6 +32,8 @@ app.include_router(notification_router)
 
 origins = [
     "http://localhost:3000",
+    "http://localhost:8000",
+    "https://twabot.netlify.app",
     settings.NGROK_TUNNEL_URL
 ]
 
@@ -101,7 +103,7 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
 
     """
     origin = request.headers.get('origin')
-    origin_list = ["http://localhost:3000","http://localhost:8000",settings.NGROK_TUNNEL_URL] 
+    origin_list = ["http://localhost:3000","http://localhost:8000","https://twabot.netlify.app",settings.NGROK_TUNNEL_URL] 
     #TODO добавить свой список в проде для фронтенда
     if origin not in origin_list:
         raise AccessTokenException

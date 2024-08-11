@@ -166,14 +166,21 @@ async def canceled(
                 logger.error(msg="TelegramBadRequest", extra=extra, exc_info=True)
                 raise TelegramError(e.message)
             raise TransactionStatusCanceledTrue
-
+        
         if current_transaction.notification_initiator_canceled == True:
             send_user = current_transaction.initiator_chat_id
-            await bot.send_message(
-                send_user,
-                text=f"🚫 {current_transaction.user_for_first_name} | @{current_transaction.user_for_username} отменил активную сделку\n"
-                f"Сумма сделки составляла: {current_transaction.sum}р, средства были возвращены без учета комиссии"
-            )
+            try:
+                await bot.send_message(
+                    send_user,
+                    text=f"🚫 {current_transaction.user_for_first_name} | @{current_transaction.user_for_username} отменил активную сделку\n"
+                    f"Сумма сделки составляла: {current_transaction.sum}р, средства были возвращены без учета комиссии"
+                )
+            except TelegramBadRequest as e:
+                extra = {
+                    "transaction_id": transaction.transaction_id
+                }
+                logger.error(msg="TelegramBadRequest", extra=extra, exc_info=True)
+                raise TelegramError(e.message)
             raise TransactionStatusCanceledTrue
 
     await TransactionDAO.update_status(
@@ -232,10 +239,17 @@ async def accept(
     )
     send_user = current_transaction.initiator_chat_id
     if current_transaction.notification_initiator_accept == True:
-        await bot.send_message(
-            send_user,
-            text=f"✅ {current_transaction.user_for_first_name} | @{current_transaction.user_for_username} принял вашу заявку на сделку\nСумма: {current_transaction.sum}",
-        )
+        try:
+            await bot.send_message(
+                send_user,
+                text=f"✅ {current_transaction.user_for_first_name} | @{current_transaction.user_for_username} принял вашу заявку на сделку\nСумма: {current_transaction.sum}",
+            )
+        except TelegramBadRequest as e:
+            extra = {
+                "transaction_id": transaction.transaction_id
+            }
+            logger.error(msg="TelegramBadRequest", extra=extra, exc_info=True)
+            raise TelegramError(e.message)
     raise TransactionStatusActiveTrue
 
 
@@ -290,11 +304,18 @@ async def conditions_are_met(
     )
     send_user = current_transaction.user_for_chat_id
     if current_transaction.notification_user_for_conditions_are_met == True:
-        await bot.send_message(
-            send_user,
-            text=f"⭐️ Сделка с {user.first_name} | @{user.username} была успешно завершена\n"
-            f"Баланс пополнен на {update_transaction}р с учетом комиссии"
-        )
+        try:
+            await bot.send_message(
+                send_user,
+                text=f"⭐️ Сделка с {user.first_name} | @{user.username} была успешно завершена\n"
+                f"Баланс пополнен на {update_transaction}р с учетом комиссии"
+            )
+        except TelegramBadRequest as e:
+            extra = {
+                "transaction_id": transaction.transaction_id
+            }
+            logger.error(msg="TelegramBadRequest", extra=extra, exc_info=True)
+            raise TelegramError(e.message)
     await TransactionDAO.update_rating(user_id=user.id)
     raise TransactionСonditionsAreMet
 
@@ -325,7 +346,7 @@ async def list_with_status(
     Возможные статусы: _в ожидании_, _завершено_, _активно_, _отменено_.
     """
     if statuses is None:
-        statuses = "в ожидании,отменено,активно,завершено"
+        statuses = "в ожидании,отменено,активно,Sзавершено"
     status_list = [status.strip() for status in statuses.split(",")]
 
     return await TransactionDAO.list_with_status(user_id=user.id, statuses=status_list)
