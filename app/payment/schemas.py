@@ -46,7 +46,7 @@ class SPaymentPayout(BaseModel):
 
 
 class SPaymentList(BaseModel):
-    id: int
+    id: UUID
     user_id: UUID
     amount: Decimal
     last4: int
@@ -54,11 +54,6 @@ class SPaymentList(BaseModel):
     action: str
     status: str
 
-    @field_validator("created_at")
-    @classmethod
-    def check_created_at(cls, v: datetime):
-        v = v.strftime("%d-%m-%Y %H:%M")
-        return v
 
 
 class SPaymentConfirmURL(BaseModel):

@@ -66,6 +66,8 @@ async def webhook_payout(request: Request) -> None:
     status = response["object"]["status"]
     amount = response["object"]["amount"]["value"]
     last4 = response["object"]["payment_method"]["card"]["last4"]
+    print(response["object"])
+    print(last4)
     captured_at = response["object"]["captured_at"]
     user_id = response["object"]["metadata"]["user_id"]
     chat_id = response["object"]["metadata"]["chat_id"]

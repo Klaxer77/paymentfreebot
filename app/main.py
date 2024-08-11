@@ -67,7 +67,7 @@ async def bot_webhook(request: Request, update: dict):
     client_host = request.client.host
     logger.debug(client_host)
     if client_host not in TELEGRAM_IPS:
-        logger.error(f"{client_host} - недоступный ips")
+        logger.error(f"{client_host} - inaccessible ips")
         raise AccessTokenException
     if not update:
         return None
