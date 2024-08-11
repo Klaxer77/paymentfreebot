@@ -52,7 +52,9 @@ WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
 
 TELEGRAM_IPS = [
     "149.154.160.0/20",
-    "91.108.6.94"
+    "91.108.6.94",
+    "91.108.6.21",
+    settings.NGROK_TUNNEL_URL
 ]
 
 @app.post(WEBHOOK_PATH)
