@@ -32,10 +32,11 @@ app.include_router(notification_router)
 
 
 origins = [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "https://twabot.netlify.app",
-    settings.NGROK_TUNNEL_URL
+    # "http://localhost:3000",
+    # "http://localhost:8000",
+    # "https://twabot.netlify.app",
+    # settings.NGROK_TUNNEL_URL
+    "*"
 ]
 
 app.add_middleware(
