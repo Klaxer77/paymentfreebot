@@ -30,6 +30,7 @@ app.include_router(transaction_router)
 app.include_router(rating_router)
 app.include_router(notification_router)
 
+
 origins = [
     "http://localhost:3000",
     "http://localhost:8000",

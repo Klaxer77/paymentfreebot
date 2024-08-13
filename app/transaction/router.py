@@ -302,7 +302,7 @@ async def conditions_are_met(
         chat_id_user_for=current_transaction.user_for_chat_id,
         balance=current_transaction.sum,
     )
-    commission = current_transaction.sum * Decimal((settings.COMMISION_PERCENTAGE / 100)) #FIXME посмотреть все ли норм
+    commission = current_transaction.sum * Decimal((settings.COMMISION_PERCENTAGE / 100))
     commision_result = current_transaction.sum - commission
     send_user = current_transaction.user_for_chat_id
     if current_transaction.notification_user_for_conditions_are_met == True:
@@ -310,7 +310,7 @@ async def conditions_are_met(
             await bot.send_message(
                 send_user,
                 text=f"⭐️ Сделка с {user.first_name} | @{user.username} была успешно завершена\n"
-                f"Баланс пополнен на {round(commision_result, 4)}р с учетом комиссии {settings.COMMISION_PERCENTAGE}%"
+                f"Баланс пополнен на {round(commision_result, 2)}р с учетом комиссии {settings.COMMISION_PERCENTAGE}%"
             )
         except TelegramBadRequest as e:
             extra = {

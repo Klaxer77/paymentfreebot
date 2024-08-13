@@ -1,13 +1,19 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from app.config import settings
 from app.exceptions.schemas import SExceptionsINFO
 from app.users.dao import UsersDAO
 from app.users.depencies import get_current_user
-from app.users.schemas import SUser, SUserDetail, SUserListALL, SUserRegisterANDlogin
+from app.users.schemas import SCreateToken, SUser, SUserDetail, SUserListALL, SUserRegisterANDlogin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+@router.post("/webhook")
+async def user_webhook(request: Request) -> SCreateToken:
+    response = await request.json()
+    return response
 
 
 @router.get("/all")
