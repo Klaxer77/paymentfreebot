@@ -29,8 +29,6 @@ class Settings(BaseSettings):
     YOOKASSA_AGENTID: int
 
     COMMISION_PERCENTAGE: int
-    
-    USER_WEBHOOK_URL: str
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

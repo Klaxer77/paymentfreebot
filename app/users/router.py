@@ -10,12 +10,6 @@ from app.users.schemas import SCreateToken, SUser, SUserDetail, SUserListALL, SU
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/webhook")
-async def user_webhook(request: Request) -> SCreateToken:
-    response = await request.json()
-    return response
-
-
 @router.get("/all")
 async def all() -> list[SUserListALL]:
     """

@@ -14,10 +14,6 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def start(message: types.Message):
-    
-    webhook_url = settings.USER_WEBHOOK_URL
-    async with httpx.AsyncClient() as client:
-        await client.post(webhook_url, json={"chat_id": message.chat.id})
 
     await register(
         user_data=SUserRegisterANDlogin(
