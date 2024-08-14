@@ -31,20 +31,20 @@ app.include_router(rating_router)
 app.include_router(notification_router)
 
 
-origins = ["*"]  # "http://localhost:3000",
-                # "http://localhost:8000",
-                # "https://twabot.netlify.app",
-                # settings.NGROK_TUNNEL_URL
+# origins = ["*"]  # "http://localhost:3000",
+#                 # "http://localhost:8000",
+#                 # "https://twabot.netlify.app",
+#                 # settings.NGROK_TUNNEL_URL
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
-                   "Access-Control-Allow-Origin",
-                   "Authorization"],
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
+#     allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
+#                    "Access-Control-Allow-Origin",
+#                    "Authorization"],
+# )
 
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
@@ -52,8 +52,7 @@ WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
 TELEGRAM_IPS = [
     "149.154.160.0/20",
     "91.108.6.94",
-    "91.108.6.21",
-    settings.NGROK_TUNNEL_URL
+    "91.108.6.21"
 ]
 
 @app.post(WEBHOOK_PATH)
@@ -103,11 +102,11 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
     Пользователь должен быть зарегистрирован в боте с данным _chat_id_
 
     """
-    origin = request.headers.get('origin')
-    origin_list = ["http://localhost:3000","http://localhost:8000","https://twabot.netlify.app",settings.NGROK_TUNNEL_URL] 
-    #TODO добавить свой список в проде для фронтенда
-    if origin not in origin_list:
-        raise AccessTokenException
+    # origin = request.headers.get('origin')
+    # origin_list = ["http://localhost:3000","http://localhost:8000","https://twabot.netlify.app",settings.NGROK_TUNNEL_URL] 
+    # #TODO добавить свой список в проде для фронтенда
+    # if origin not in origin_list:
+    #     raise AccessTokenException
     try:
         user = await UsersDAO.check_user(chat_id=user.chat_id)
         if not user:

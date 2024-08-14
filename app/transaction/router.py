@@ -353,7 +353,3 @@ async def list_with_status(
 
     return await TransactionDAO.list_with_status(user_id=user.id, statuses=status_list)
 
-
-# @router.get("/test/get_users/{transaction_id}")
-# async def test_get_users(transaction_id: UUID):
-#     return await TransactionDAO.get_users(transaction_id=transaction_id)

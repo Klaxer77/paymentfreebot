@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, select, update, or_
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,6 +22,20 @@ from app.users.schemas import SUser
 
 class UsersDAO(BaseDAO):
     model = Users
+    
+    @classmethod
+    async def search(cls, search_field: str):
+        async with async_session_maker() as session:
+            query = select(Users).where(
+                or_(
+                    Users.first_name.ilike(f'%{search_field}%'),
+                    Users.username.ilike(f'%{search_field}%')
+                )
+            )
+            result = await session.execute(query)
+            users = result.scalars().all()
+            return users
+        
 
     @classmethod
     async def update_register(cls, user_id: UUID, **data):

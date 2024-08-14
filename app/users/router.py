@@ -10,6 +10,12 @@ from app.users.schemas import SCreateToken, SUser, SUserDetail, SUserListALL, SU
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
+@router.get("/search/{search}")
+async def search(search: str):
+    search_user = await UsersDAO.search(search)
+    return search_user
+
+
 @router.get("/all")
 async def all() -> list[SUserListALL]:
     """

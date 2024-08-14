@@ -52,3 +52,4 @@ class SToken(BaseModel):
 class SCreateToken(BaseModel):
     chat_id: int
     
+    
