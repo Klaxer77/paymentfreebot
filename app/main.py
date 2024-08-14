@@ -31,13 +31,21 @@ app.include_router(rating_router)
 app.include_router(notification_router)
 
 
+origins = [
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://twabot.netlify.app"
+]
+
 app.add_middleware(
-       CORSMiddleware,
-       allow_origins=["*"],
-       allow_credentials=True,
-       allow_methods=["*"],
-       allow_headers=["*"],
-   )
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
+    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
+                   "Access-Control-Allow-Origin",
+                   "Authorization"],
+)
 
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
@@ -75,50 +83,6 @@ async def run_mock_script():
     """
     await mock_script()
     return {"message": "Successfully!!!"}
-
-
-@app.post("/create/token")
-async def create_token(response: Response, request: Request, user: SCreateToken) -> SToken | SExceptionsINFO:
-    """
-    **Создать токен для аутентификации пользователя**
-
-    **Args**
-
-    `chat_id` - id чата пользователя в telegram
-
-    **Returns**
-
-    Возвращает токен для аутентификации
-
-    **Note**
-
-    Пользователь должен быть зарегистрирован в боте с данным _chat_id_
-
-    """
-    # origin = request.headers.get('origin')
-    # origin_list = ["http://localhost:3000","http://localhost:8000","https://twabot.netlify.app",settings.NGROK_TUNNEL_URL] 
-    # #TODO добавить свой список в проде для фронтенда
-    # if origin not in origin_list:
-    #     raise AccessTokenException
-    try:
-        user = await UsersDAO.check_user(chat_id=user.chat_id)
-        if not user:
-            raise UserNotFound
-        token = create_access_token(user.chat_id)
-        response.set_cookie("token", token)
-        logger.debug(token)
-        return {"token": token}
-    
-    except UserNotFound as e:
-        return {"detail": e.detail}
-    except (SQLAlchemyError, Exception) as e:
-        if isinstance(e, SQLAlchemyError):
-            msg = "Database Exc"
-        if isinstance(e, Exception):
-            msg = "Unknown Exc"
-        msg += ": cannot return token"
-        logger.error(msg=msg, exc_info=True)
-        raise ServerError
 
 
 @app.on_event("startup")

@@ -1,13 +1,59 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 
 from app.config import settings
+from app.exceptions.base import ServerError
 from app.exceptions.schemas import SExceptionsINFO
+from app.exceptions.users.exceptions import UserNotFound
+from app.users.auth import create_access_token
 from app.users.dao import UsersDAO
 from app.users.depencies import get_current_user
-from app.users.schemas import SCreateToken, SUser, SUserDetail, SUserListALL, SUserRegisterANDlogin
+from app.users.schemas import SCreateToken, SToken, SUser, SUserDetail, SUserListALL, SUserRegisterANDlogin
+from sqlalchemy.exc import SQLAlchemyError
+from app.logger import logger
+
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+@router.post("/create/token")
+async def create_token(response: Response, request: Request, user: SCreateToken) -> SToken | SExceptionsINFO:
+    """
+    **Создать токен для аутентификации пользователя**
+
+    **Args**
+
+    `chat_id` - id чата пользователя в telegram
+
+    **Returns**
+
+    Возвращает токен для аутентификации
+
+    **Note**
+
+    Пользователь должен быть зарегистрирован в боте с данным _chat_id_
+
+    """
+
+    try:
+        user = await UsersDAO.check_user(chat_id=user.chat_id)
+        if not user:
+            raise UserNotFound
+        token = create_access_token(user.chat_id)
+        response.set_cookie("token", token)
+        logger.debug(token)
+        return {"token": token}
+    
+    except UserNotFound as e:
+        return {"detail": e.detail}
+    except (SQLAlchemyError, Exception) as e:
+        if isinstance(e, SQLAlchemyError):
+            msg = "Database Exc"
+        if isinstance(e, Exception):
+            msg = "Unknown Exc"
+        msg += ": cannot return token"
+        logger.error(msg=msg, exc_info=True)
+        raise ServerError
 
 
 @router.get("/search/{search}")
