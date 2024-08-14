@@ -11,7 +11,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.get("/search/{search}")
-async def search(search: str):
+async def search(search: str) -> list[SUserListALL]:
     search_user = await UsersDAO.search(search)
     return search_user
 

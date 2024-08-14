@@ -31,20 +31,13 @@ app.include_router(rating_router)
 app.include_router(notification_router)
 
 
-# origins = ["*"]  # "http://localhost:3000",
-#                 # "http://localhost:8000",
-#                 # "https://twabot.netlify.app",
-#                 # settings.NGROK_TUNNEL_URL
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-#     allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
-#                    "Access-Control-Allow-Origin",
-#                    "Authorization"],
-# )
+app.add_middleware(
+       CORSMiddleware,
+       allow_origins=["*"],
+       allow_credentials=True,
+       allow_methods=["*"],
+       allow_headers=["*"],
+   )
 
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
