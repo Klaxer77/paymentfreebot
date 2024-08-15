@@ -26,7 +26,7 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
 
     if user is None:
         new_user = await UsersDAO.add(
-            score=5,
+            score=5.0,
             chat_id=user_data.chat_id,
             username=user_data.username,
             first_name=user_data.first_name,

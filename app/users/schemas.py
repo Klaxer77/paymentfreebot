@@ -7,7 +7,7 @@ from pydantic import BaseModel, field_validator
 
 class SUserListALL(BaseModel):
     id: UUID
-    rating: float
+    rating: Decimal
     first_name: str
     last_name: str | None
     username: str
@@ -26,7 +26,7 @@ class SNotification(BaseModel):
 class SUser(BaseModel):
     id: UUID
     chat_id: int
-    rating: float
+    rating: Decimal
     first_name: str
     last_name: str | None
     username: str
