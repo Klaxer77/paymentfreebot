@@ -50,6 +50,13 @@ app.add_middleware(
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
 
+TELEGRAM_IPS = [
+    "149.154.160.0/20",
+    "91.108.6.94",
+    "91.108.6.21",
+    "172.23.0.1"
+]
+
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(request: Request, update: dict):
     """
@@ -57,11 +64,11 @@ async def bot_webhook(request: Request, update: dict):
     `Only Webhook URL`
 
     """
-    # client_host = request.client.host
-    # logger.debug(client_host)
-    # if client_host not in TELEGRAM_IPS:
-    #     logger.error(f"{client_host} - inaccessible ips")
-    #     raise AccessTokenException
+    client_host = request.client.host
+    logger.debug(client_host)
+    if client_host not in TELEGRAM_IPS:
+        logger.error(f"{client_host} - inaccessible ips")
+        raise AccessTokenException
     if not update:
         return None
     telegram_update = types.Update(**update)
