@@ -6,13 +6,18 @@ from app.notification.dao import NotificationDAO
 from app.notification.schemas import SNotification, SNotificationOne
 from app.users.depencies import get_current_user
 from app.users.schemas import SUser
+from app.utils.security import security
 
 router = APIRouter(prefix="/notification", tags=["Notifications"])
 
 @router.post("/disable_or_on_all")
-async def disable_or_on_all(notif: SNotification, user: SUser = Depends(get_current_user)) -> SExceptionsINFO:
+async def disable_or_on_all(notif: SNotification, authorization: str = Depends(security), user: SUser = Depends(get_current_user)) -> SExceptionsINFO:
     """
     **Включить или выключить все уведомления**
+    
+    **Headers**:
+
+    Authorization: _access token_ *required
     
     **Args**
     
@@ -32,9 +37,13 @@ async def disable_or_on_all(notif: SNotification, user: SUser = Depends(get_curr
     raise NotificationDisableALL
 
 @router.post("/disable_or_on_one")
-async def disable_or_on_one(notif: SNotificationOne, user: SUser = Depends(get_current_user)) -> SExceptionsINFO | None:
+async def disable_or_on_one(notif: SNotificationOne, authorization: str = Depends(security), user: SUser = Depends(get_current_user)) -> SExceptionsINFO | None:
     """
     **Включить или выключить уведомления по его типу**
+    
+    **Headers**:
+
+    Authorization: _access token_ *required
     
     **Args**
     

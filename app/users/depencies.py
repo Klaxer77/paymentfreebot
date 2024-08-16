@@ -14,9 +14,12 @@ from app.logger import logger
 
 
 def get_token(request: Request):
-    token = request.cookies.get("token")
-    if not token:
+    auth_header = request.headers.get("Authorization")
+    logger.debug(auth_header)
+    if not auth_header:
         raise NoneToken
+    token = auth_header.split()[1]
+    logger.debug(token)
     return token
 
 

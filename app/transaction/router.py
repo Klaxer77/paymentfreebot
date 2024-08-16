@@ -37,6 +37,7 @@ from app.users.dao import UsersDAO
 from app.users.depencies import get_current_user
 from app.users.schemas import SUser
 from app.logger import logger
+from app.utils.security import security
 
 
 router = APIRouter(prefix="/transaction", tags=["Transactions"])
@@ -45,6 +46,7 @@ router = APIRouter(prefix="/transaction", tags=["Transactions"])
 @router.post("/create")
 async def create(
     transaction: STransactionCreate,
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
 ) -> SExceptionsINFO:
     """
@@ -106,6 +108,7 @@ async def create(
 @router.post("/canceled")
 async def canceled(
     transaction: STransaction,
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
 ) -> SExceptionsINFO:
     """
@@ -192,6 +195,7 @@ async def canceled(
 @router.post("/accept")
 async def accept(
     transaction: STransaction,
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
 ) -> SExceptionsINFO:
     """
@@ -256,6 +260,7 @@ async def accept(
 @router.post("/conditions_are_met")
 async def conditions_are_met(
     transaction: STransaction,
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
 ) -> SExceptionsINFO:
     """
@@ -324,6 +329,7 @@ async def conditions_are_met(
 
 @router.get("/list_with_status")
 async def list_with_status(
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
     statuses: Optional[str] = None,
 ) -> list[STransactionList] | SExceptionsINFO:

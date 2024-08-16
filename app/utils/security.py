@@ -1,4 +1,4 @@
-# from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer
 
 
-# security = HTTPBearer()
+security = HTTPBearer()

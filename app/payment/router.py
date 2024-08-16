@@ -16,6 +16,7 @@ from app.users.dao import UsersDAO
 from app.users.depencies import get_current_user
 from app.users.schemas import SUser
 from app.utils.translator import translator
+from app.utils.security import security
 
 router = APIRouter(prefix="/payment", tags=["Payments"])
 
@@ -90,6 +91,7 @@ async def webhook_payout(request: Request) -> None:
 @router.post("/create")
 async def create(
     payment: SPaymentCreate,
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
 ) -> SPaymentConfirmURL  | SExceptionsINFO:
     """
@@ -119,6 +121,7 @@ async def create(
 @router.post("/payout")
 async def payout(
     payment: SPaymentPayout,
+    authorization: str = Depends(security),
     user: SUser = Depends(get_current_user),
 ) ->  SExceptionsINFO:
     """
@@ -155,6 +158,7 @@ async def payout(
 
 @router.get("/history")
 async def history(
+authorization: str = Depends(security),
 user: SUser = Depends(get_current_user)
 ) -> list[SPaymentList]  | SExceptionsINFO:
     """

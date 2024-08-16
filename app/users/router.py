@@ -11,6 +11,7 @@ from app.users.depencies import get_current_user
 from app.users.schemas import SCreateToken, SToken, SUser, SUserDetail, SUserListALL, SUserRegisterANDlogin
 from sqlalchemy.exc import SQLAlchemyError
 from app.logger import logger
+from app.utils.security import security
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -40,7 +41,6 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
         if not user:
             raise UserNotFound
         token = create_access_token(user.chat_id)
-        response.set_cookie("token", token)
         logger.debug(token)
         return {"token": token}
     
@@ -58,6 +58,18 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
 
 @router.get("/search/{search}")
 async def search(search: str) -> list[SUserListALL]:
+    """ 
+    **Поиск по пользователям**
+    
+    **Args**
+    
+    `search` - @username или first_name пользователя
+    
+    **Returns**
+    
+    Возвращает одного или несколько пользователей
+    
+    """
     search_user = await UsersDAO.search(search)
     return search_user
 
@@ -76,6 +88,7 @@ async def all() -> list[SUserListALL]:
 
 @router.get("/me")
 async def read_user_me(
+authorization: str = Depends(security),
 user: SUser = Depends(get_current_user)
 ) -> SUser | SExceptionsINFO:
     """

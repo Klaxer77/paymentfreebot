@@ -18,7 +18,7 @@ def create_access_token(chat_id: int) -> str:
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     logger.debug(encoded_jwt)
-    return encoded_jwt
+    return f"Bearer {encoded_jwt}"
 
 
 async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
