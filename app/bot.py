@@ -30,6 +30,7 @@ async def start(message: types.Message):
         text="Открыть веб-приложение",
         web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}/token/{token}"),
     )
+    print(button)
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
     await message.answer(
         f"Привет, {message.from_user.full_name}! Нажмите на кнопку ниже, чтобы открыть веб-приложение:",
