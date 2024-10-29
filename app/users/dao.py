@@ -1,3 +1,4 @@
+from datetime import datetime
 import uuid
 from decimal import Decimal
 from typing import Optional
@@ -13,6 +14,7 @@ from app.database import async_session_maker
 from app.exceptions.base import ServerError
 from app.exceptions.users.exceptions import UserNotFound
 from app.notification.models import Notifications
+from app.payment.models import PaymentHistory
 from app.rating.models import Ratings
 from app.users.models import Users
 from app.logger import logger
@@ -210,7 +212,7 @@ class UsersDAO(BaseDAO):
             raise ServerError
 
     @classmethod
-    async def add(cls, score: int, chat_id: int, username: str, first_name: str, last_name: str, is_premium: bool):
+    async def add(cls, score: int, balance: Decimal, chat_id: int, username: str, first_name: str, last_name: str, is_premium: bool):
         try:
             extra = {
                 "score": score,
@@ -225,6 +227,7 @@ class UsersDAO(BaseDAO):
             async with async_session_maker() as session:
                 insert_user = insert(cls.model).values(
                     chat_id=chat_id,
+                    balance=balance,
                     username=username,
                     first_name=first_name,
                     last_name=last_name,
@@ -238,6 +241,16 @@ class UsersDAO(BaseDAO):
                 
                 insert_rating = insert(Ratings).values(rated_user_id=user.id, score=score)
                 await session.execute(insert_rating)
+                
+                insert_payment_history = insert(PaymentHistory).values( # В качестве pet проекта
+                    user_id=user.id, 
+                    amount=1000.00,
+                    last4=4477,
+                    created_at=datetime.now(),
+                    action="Пополнение",
+                    status="успешно"
+                    )
+                await session.execute(insert_payment_history)
                 
                 await session.commit()
                 return new_user.mappings().one_or_none()

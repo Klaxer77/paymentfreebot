@@ -18,7 +18,7 @@ def create_access_token(chat_id: int) -> str:
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     logger.debug(encoded_jwt)
-    return f"Bearer {encoded_jwt}"
+    return encoded_jwt
 
 
 async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
@@ -27,6 +27,7 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
     if user is None:
         new_user = await UsersDAO.add(
             score=5.0,
+            balance=1000.00, # В качестве pet проекта
             chat_id=user_data.chat_id,
             username=user_data.username,
             first_name=user_data.first_name,
@@ -34,7 +35,7 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
             is_premium=user_data.is_premium,
         )
         await NotificationDAO.add(user_id=new_user.id)
-        return None
+        return new_user
 
     if any(
         [
@@ -45,7 +46,7 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
             user.is_premium != user_data.is_premium,
         ]
     ):
-        await UsersDAO.update_register(
+        new_user = await UsersDAO.update_register(
             user_id=user.id,
             chat_id=user_data.chat_id,
             username=user_data.username,
@@ -53,6 +54,6 @@ async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
             last_name=user_data.last_name,
             is_premium=user_data.is_premium,
         )
-        return None
+        return new_user
 
-    return None
+    return user

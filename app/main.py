@@ -63,15 +63,15 @@ async def bot_webhook(update: dict):
     await dp._process_update(bot, telegram_update)
 
 
-@app.get("/run-mock-script")
-async def run_mock_script():
-    """
+# @app.get("/run-mock-script")
+# async def run_mock_script():
+#     """
 
-    `Mock данные для тестов`
+#     `Mock данные для тестов`
 
-    """
-    await mock_script()
-    return {"message": "Successfully!!!"}
+#     """
+#     await mock_script()
+#     return {"message": "Successfully!!!"}
 
 
 @app.on_event("startup")

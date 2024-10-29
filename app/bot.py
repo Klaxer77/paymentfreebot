@@ -5,7 +5,7 @@ from fastapi import Response
 import httpx
 
 from app.config import settings
-from app.users.auth import register
+from app.users.auth import create_access_token, register
 from app.users.schemas import SUserRegisterANDlogin
 
 bot = Bot(token=settings.BOT_SECRET_TOKEN)
@@ -15,7 +15,7 @@ dp = Dispatcher()
 @dp.message(Command("start"))
 async def start(message: types.Message):
 
-    await register(
+    new_user = await register(
         user_data=SUserRegisterANDlogin(
             chat_id=message.chat.id,
             first_name=message.from_user.first_name,
@@ -24,10 +24,11 @@ async def start(message: types.Message):
             is_premium=message.from_user.is_premium,
         )
     )
+    token = create_access_token(new_user.chat_id)
 
     button = InlineKeyboardButton(
         text="Открыть веб-приложение",
-        web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}"),
+        web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}/token/{token}"),
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
     await message.answer(
