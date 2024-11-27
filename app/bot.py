@@ -14,27 +14,28 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def start(message: types.Message):
-
-    new_user = await register(
-        user_data=SUserRegisterANDlogin(
-            chat_id=message.chat.id,
-            first_name=message.from_user.first_name,
-            last_name=message.from_user.last_name,
-            username=message.from_user.username,
-            is_premium=message.from_user.is_premium,
+    async with httpx.AsyncClient() as ac:
+        new_user = await register(
+            user_data=SUserRegisterANDlogin(
+                chat_id=message.chat.id,
+                first_name=message.from_user.first_name,
+                last_name=message.from_user.last_name,
+                username=message.from_user.username,
+                is_premium=message.from_user.is_premium,
+            )
         )
-    )
-    token = create_access_token(new_user.chat_id)
+        token = create_access_token(new_user.chat_id)
 
-    button = InlineKeyboardButton(
-        text="Открыть веб-приложение",
-        web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}/token/{token}")
-    )
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
-    await message.answer(
-        f"Привет, {message.from_user.full_name}! Нажмите на кнопку ниже, чтобы открыть веб-приложение:",
-        reply_markup=keyboard,
-    )
+        button = InlineKeyboardButton(
+            text="Открыть веб-приложение",
+            web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}?token={token}"),
+        )
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
+
+        await message.answer(
+            f"Привет, {message.from_user.full_name}! Нажмите на кнопку ниже, чтобы открыть веб-приложение:",
+            reply_markup=keyboard,
+        )
 
 
 @dp.message(Command("help"))

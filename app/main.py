@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from aiogram import types
@@ -21,6 +22,8 @@ from app.users.schemas import SCreateToken, SToken
 from app.utils.mock import mock_script
 from app.logger import logger
 from app.exceptions.users.exceptions import UserNotFound
+from sse_starlette.sse import EventSourceResponse
+
 
 app = FastAPI()
 
@@ -31,27 +34,28 @@ app.include_router(rating_router)
 app.include_router(notification_router)
 
 
-# origins = [
-#     # "http://localhost:3000",
-#     # "http://localhost:8000",
-#     # "https://twabot.netlify.app"
-#     "*"
-# ]
+origins = [
+    # "http://localhost:3000",
+    # "http://localhost:8000",
+    # "https://twabot.netlify.app"
+    "*"
+]
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-#     allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
-#                    "Access-Control-Allow-Origin",
-#                    "Authorization"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
+    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
+                   "Access-Control-Allow-Origin",
+                   "Authorization"],
+)
 
 WEBHOOK_PATH = f"/bot/{settings.BOT_SECRET_TOKEN}"
 WEBHOOK_URL = f"{settings.NGROK_TUNNEL_URL}{WEBHOOK_PATH}"
 
-@app.post(WEBHOOK_PATH)
+
+@app.post(WEBHOOK_PATH, include_in_schema=False)
 async def bot_webhook(update: dict):
     """
 
@@ -95,3 +99,5 @@ async def add_process_time_header(request: Request, call_next):
     # При подключении Prometheus + Grafana подобный лог не требуется
     logger.info("Request handling time", extra={"process_time": round(process_time, 4)})
     return response
+
+
