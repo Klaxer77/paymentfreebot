@@ -22,7 +22,6 @@ from app.users.schemas import SCreateToken, SToken
 from app.utils.mock import mock_script
 from app.logger import logger
 from app.exceptions.users.exceptions import UserNotFound
-from sse_starlette.sse import EventSourceResponse
 
 
 app = FastAPI()
