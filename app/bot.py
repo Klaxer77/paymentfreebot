@@ -28,7 +28,7 @@ async def start(message: types.Message):
 
         button = InlineKeyboardButton(
             text="Открыть веб-приложение",
-            web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}?token={token}"),
+            web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}/token/{token}"),
         )
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
 
