@@ -16,4 +16,5 @@ class AsyncRedis:
     async def __aexit__(self, *args):
         await self.redis_pool.close()
         
+#1
         
