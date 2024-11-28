@@ -41,7 +41,7 @@
 
     <script>
         // Connect to the /stream-sse endpoint
-        const eventSource = new EventSource("http://localhost:8000/stream-sse");
+        const eventSource = new EventSource("https://paymentfreebot.onrender.com/stream-sse");
 
         // Handle incoming messages
         eventSource.onmessage = function(event) {
