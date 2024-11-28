@@ -1,4 +1,4 @@
-import aioredis
+from redis import asyncio as aioredis
 from app.config import settings
 
 class AsyncRedis:
@@ -11,5 +11,4 @@ class AsyncRedis:
     async def __aexit__(self, *args):
         await self.redis_pool.close()
         
-#1
         
