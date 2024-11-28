@@ -1,5 +1,6 @@
 import asyncio
 import json
+import secrets
 import time
 from typing import List
 
@@ -25,7 +26,7 @@ from app.users.schemas import SCreateToken, SToken
 from app.utils.mock import mock_script
 from app.logger import logger
 from app.exceptions.users.exceptions import UserNotFound
-from app.utils.emitters import emitters
+from app.utils.redis import AsyncRedis
 
 app = FastAPI()
 
@@ -69,22 +70,28 @@ async def bot_webhook(update: dict):
     telegram_update = types.Update(**update)
     await dp._process_update(bot, telegram_update)
     
-    
-@app.get("/stream-sse")
+@app.get("/stream-sse")    
 async def stream_sse():
-    queue = asyncio.Queue()
-    emitters.append(queue)
+    async with AsyncRedis() as redis:
+        queue_name = f"subscriber_queue_{secrets.token_hex(16)}"
 
-    async def event_stream():
-        try:
-            await queue.put(json.dumps({"event": "SUBSCRIBE"}))
-            while True:
-                message = await queue.get()
-                yield f"data: {message}\n\n"
-        except asyncio.CancelledError:
-            emitters.remove(queue)
-            
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+        await redis.sadd("subscribers_set", queue_name)
+
+        await redis.lpush(queue_name, json.dumps({"event": "SUBSCRIBE"}))
+
+        async def event_stream():
+            try:
+                while True:
+                    message = await redis.brpop(queue_name)
+                    if message:
+                        yield f"data: {message[1]}\n\n"
+            except asyncio.CancelledError:
+                pass
+            finally:
+                await redis.srem("subscribers_set", queue_name)
+
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
 
 
 # @app.get("/run-mock-script")

@@ -12,8 +12,9 @@ from app.logger import logger
 from app.notification.dao import NotificationDAO
 from app.users.dao import UsersDAO
 from app.users.schemas import SUserRegisterANDlogin
-from app.utils.emitters import emitters
 import secrets
+
+from app.utils.redis import AsyncRedis
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -27,16 +28,20 @@ def create_access_token(chat_id: int) -> str:
     return encoded_jwt
 
 async def send_event_to_subscribers(data: str, event: str):
-    event_data = json.dumps({
-        "id": str(secrets.token_hex(16)),
-        "event": event,
-        "data": data
-    })
+    async with AsyncRedis() as redis:
+        event_data = json.dumps({
+            "id": str(secrets.token_hex(16)),
+            "event": event,
+            "data": data
+        })
 
-    for queue in emitters:
-        await queue.put(event_data)
-    
-    return None
+        subscribers = await redis.smembers("subscribers_set")
+
+        for queue in subscribers:
+            await redis.lpush(queue, event_data)
+
+        return None
+
 
 
 
