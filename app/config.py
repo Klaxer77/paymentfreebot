@@ -32,8 +32,7 @@ class Settings(BaseSettings):
     
     REDIS_HOST: str
     REDIS_PORT: int
-    
-    INTERNAL_REDIS_URL: str
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
