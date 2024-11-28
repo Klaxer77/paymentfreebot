@@ -1,9 +1,12 @@
 import asyncio
+import json
 import time
+from typing import List
 
 from aiogram import types
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.bot import bot, dp
@@ -22,7 +25,7 @@ from app.users.schemas import SCreateToken, SToken
 from app.utils.mock import mock_script
 from app.logger import logger
 from app.exceptions.users.exceptions import UserNotFound
-
+from app.utils.emitters import emitters
 
 app = FastAPI()
 
@@ -65,6 +68,23 @@ async def bot_webhook(update: dict):
         return None
     telegram_update = types.Update(**update)
     await dp._process_update(bot, telegram_update)
+    
+    
+@app.get("/stream-sse")
+async def stream_sse():
+    queue = asyncio.Queue()
+    emitters.append(queue)
+
+    async def event_stream():
+        try:
+            await queue.put(json.dumps({"event": "SUBSCRIBE"}))
+            while True:
+                message = await queue.get()
+                yield f"data: {message}\n\n"
+        except asyncio.CancelledError:
+            emitters.remove(queue)
+            
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 # @app.get("/run-mock-script")

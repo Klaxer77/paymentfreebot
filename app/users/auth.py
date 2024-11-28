@@ -1,5 +1,8 @@
 import asyncio
+import json
+from typing import Union
 from uuid import UUID
+import uuid
 from jose import jwt
 from passlib.context import CryptContext
 
@@ -9,7 +12,8 @@ from app.logger import logger
 from app.notification.dao import NotificationDAO
 from app.users.dao import UsersDAO
 from app.users.schemas import SUserRegisterANDlogin
-
+from app.utils.emitters import emitters
+import secrets
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -21,6 +25,19 @@ def create_access_token(chat_id: int) -> str:
     )
     logger.debug(encoded_jwt)
     return encoded_jwt
+
+async def send_event_to_subscribers(data: str, event: str):
+    event_data = json.dumps({
+        "id": str(secrets.token_hex(16)),
+        "event": event,
+        "data": data
+    })
+
+    for queue in emitters:
+        await queue.put(event_data)
+    
+    return None
+
 
 
 async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:

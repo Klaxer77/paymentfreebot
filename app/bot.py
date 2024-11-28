@@ -5,7 +5,7 @@ from fastapi import Response
 import httpx
 
 from app.config import settings
-from app.users.auth import create_access_token, register
+from app.users.auth import create_access_token, register, send_event_to_subscribers
 from app.users.schemas import SUserRegisterANDlogin
 
 bot = Bot(token=settings.BOT_SECRET_TOKEN)
@@ -25,6 +25,8 @@ async def start(message: types.Message):
             )
         )
         token = create_access_token(new_user.chat_id)
+        
+        await send_event_to_subscribers(data=token, event="GET TOKEN")
 
         button = InlineKeyboardButton(
             text="Открыть веб-приложение",

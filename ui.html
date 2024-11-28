@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Data with SSE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+        }
+        #messages {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            border-radius: 5px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .message {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .message:last-child {
+            border-bottom: none;
+        }
+        .event-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-time Event Stream</h1>
+    <div id="messages"></div>
+
+    <script>
+        // Connect to the /stream-sse endpoint
+        const eventSource = new EventSource("http://localhost:8000/stream-sse");
+
+        // Handle incoming messages
+        eventSource.onmessage = function(event) {
+            // Parse the event data
+            const data = JSON.parse(event.data);
+            
+            // Create a new div for the message
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            
+            // Add the event name and the data to the message
+            const title = document.createElement("div");
+            title.classList.add("event-title");
+            title.textContent = `Event: ${data.event}`;
+            
+            const content = document.createElement("div");
+            content.textContent = `Data: ${data.data}`;
+            
+            // Append title and content to the message div
+            messageDiv.appendChild(title);
+            messageDiv.appendChild(content);
+            
+            // Append the message to the messages container
+            document.getElementById("messages").appendChild(messageDiv);
+
+            // Auto-scroll to the bottom of the messages
+            const messagesDiv = document.getElementById("messages");
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        // Handle errors (optional)
+        eventSource.onerror = function(error) {
+            console.error("Error occurred while receiving SSE:", error);
+            eventSource.close();
+        };
+    </script>
+</body>
+</html>
