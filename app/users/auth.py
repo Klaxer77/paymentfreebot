@@ -43,8 +43,6 @@ async def send_event_to_subscribers(data: str, event: str):
         return None
 
 
-
-
 async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
     user = await UsersDAO.check_user(username=user_data.username)
 

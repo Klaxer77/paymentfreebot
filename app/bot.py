@@ -26,11 +26,11 @@ async def start(message: types.Message):
         )
         token = create_access_token(new_user.chat_id)
         
-        await send_event_to_subscribers(data=token, event="GET TOKEN")
+        # await send_event_to_subscribers(data=token, event="GET TOKEN")
 
         button = InlineKeyboardButton(
             text="Открыть веб-приложение",
-            web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}"),
+            web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}/chat-id/{new_user.chat_id}"),
         )
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
 
