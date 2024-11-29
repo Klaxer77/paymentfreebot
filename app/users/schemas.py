@@ -50,6 +50,6 @@ class SToken(BaseModel):
     token: str
 
 class SCreateToken(BaseModel):
-    chat_id: int
+    username: str
     
     

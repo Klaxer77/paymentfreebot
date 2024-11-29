@@ -24,7 +24,7 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
 
     **Args**
 
-    `chat_id` - id чата пользователя в telegram
+    `username` - username пользователя в telegram
 
     **Returns**
 
@@ -32,15 +32,15 @@ async def create_token(response: Response, request: Request, user: SCreateToken)
 
     **Note**
 
-    Пользователь должен быть зарегистрирован в боте с данным _chat_id_
+    Пользователь должен быть зарегистрирован в боте с данным _username_
 
     """
 
     try:
-        user = await UsersDAO.check_user(chat_id=user.chat_id)
-        if not user:
+        check_user = await UsersDAO.check_user(username=user.username)
+        if not check_user:
             raise UserNotFound
-        token = create_access_token(user.chat_id)
+        token = create_access_token(check_user.chat_id)
         logger.debug(token)
         return {"token": token}
     
