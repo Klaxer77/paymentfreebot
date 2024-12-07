@@ -5,7 +5,7 @@ from fastapi import Response
 import httpx
 
 from app.config import settings
-from app.users.auth import create_access_token, register, send_event_to_subscribers
+from app.users.auth import create_access_token, register
 from app.users.schemas import SUserRegisterANDlogin
 
 bot = Bot(token=settings.BOT_SECRET_TOKEN)
@@ -23,15 +23,12 @@ async def start(message: types.Message):
             is_premium=message.from_user.is_premium,
         )
     )
-    
-    # await send_event_to_subscribers(data=token, event="GET TOKEN")
 
     button = InlineKeyboardButton(
         text="Открыть веб-приложение",
         web_app=types.WebAppInfo(url=f"{settings.WEB_APP_URL}"),
     )
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
-    print(button)
 
     await message.answer(
         f"Привет, {message.from_user.full_name}! Нажмите на кнопку ниже, чтобы открыть веб-приложение:",

@@ -26,7 +26,7 @@ class TransactionDAO(BaseDAO):
 
     @staticmethod
     async def get_users(transaction_id: UUID):
-        #FIXME костыль, который надо переписать с relashionship, но после тестов, так как часто используемый
+        #FIXME костыль, который надо переписать с relashionship
         try:
             logger.debug(transaction_id)
             async with async_session_maker() as session:
@@ -102,10 +102,10 @@ class TransactionDAO(BaseDAO):
         status: str,
         chat_id_initiator: int,
         chat_id_user_for: int,
-        balance: Decimal,
+        sum: Decimal,
     ):
         try:
-            commission = balance * Decimal((settings.COMMISION_PERCENTAGE / 100))
+            commission = sum * Decimal((settings.COMMISION_PERCENTAGE / 100))
             logger.debug(
                 user_for,
                 initiator,
@@ -113,7 +113,7 @@ class TransactionDAO(BaseDAO):
                 status,
                 chat_id_initiator,
                 chat_id_user_for,
-                balance)
+                sum)
             async with async_session_maker() as session:
                 insert_rating_initiator = insert(Ratings).values(rated_user_id=initiator,score=5)
                 insert_rating_user_for = insert(Ratings).values(rated_user_id=user_for,score=5)
@@ -125,12 +125,12 @@ class TransactionDAO(BaseDAO):
                 update_frozen_balance_down = (
                     update(Users)
                     .where(Users.chat_id == chat_id_user_for)
-                    .values(frozen_balance=Users.frozen_balance - Decimal(balance))
+                    .values(frozen_balance=Users.frozen_balance - Decimal(sum))
                 )
                 update_balance_up = (
                     update(Users)
                     .where(Users.chat_id == chat_id_user_for)
-                    .values(balance=Users.balance + Decimal(balance) - Decimal(commission))
+                    .values(balance=Users.balance + Decimal(sum) - Decimal(commission))
                     .returning(Users.balance)
                 )
                 await session.execute(update_status_and_finished_date)
@@ -171,40 +171,43 @@ class TransactionDAO(BaseDAO):
     async def canceled(
         user_id: UUID,
         transaction_id: UUID,
-        status: str,
+        status_update: str,
+        current_status: str,
         chat_id_initiator: int,
         chat_id_user_for: int,
-        balance: Decimal,
+        sum: Decimal,
     ):
         try:
             logger.debug(
                 user_id,
                 transaction_id,
-                status,
+                status_update,
                 chat_id_initiator,
                 chat_id_user_for,
-                balance)
+                sum)
             async with async_session_maker() as session:
                 insert_rating = insert(Ratings).values(rated_user_id=user_id,score=4)
                 update_status_and_finished_date = (
                     update(Transactions)
                     .where(Transactions.id == transaction_id)
-                    .values(finished_at=datetime.now(), status=status)
+                    .values(finished_at=datetime.now(), status=status_update)
                     .returning(Transactions)
                 )
                 update_balance_up = (
                     update(Users)
                     .where(Users.chat_id == chat_id_initiator)
-                    .values(balance=Users.balance + Decimal(balance))
+                    .values(balance=Users.balance + Decimal(sum))
                 )
-                update_frozen_balance_down = (
+                print(current_status)
+                if current_status == "активно":
+                    update_fronzen_balance_down = (
                     update(Users)
                     .where(Users.chat_id == chat_id_user_for)
-                    .values(frozen_balance=Users.frozen_balance - Decimal(balance))
-                )
+                    .values(frozen_balance=Users.frozen_balance - Decimal(sum))
+                    )
+                    await session.execute(update_fronzen_balance_down)
                 await session.execute(update_status_and_finished_date)
                 await session.execute(update_balance_up)
-                await session.execute(update_frozen_balance_down)
                 await session.execute(insert_rating)
                 await session.commit()
 
@@ -231,14 +234,14 @@ class TransactionDAO(BaseDAO):
         status: str,
         chat_id_initiator: int,
         chat_id_user_for: int,
-        balance: Decimal,
+        sum: Decimal,
     ):
         try:
             logger.debug(transaction_id,
                         status,
                         chat_id_initiator,
                         chat_id_user_for,
-                        balance)
+                        sum)
             async with async_session_maker() as session:
                 update_status = (
                     update(Transactions)
@@ -246,18 +249,12 @@ class TransactionDAO(BaseDAO):
                     .values(status=status)
                     .returning(Transactions)
                 )
-                update_balance_down = (
-                    update(Users)
-                    .where(Users.chat_id == chat_id_initiator)
-                    .values(balance=Users.balance - Decimal(balance))
-                )
                 update_frozen_balance_up = (
                     update(Users)
                     .where(Users.chat_id == chat_id_user_for)
-                    .values(frozen_balance=Users.frozen_balance + Decimal(balance))
+                    .values(frozen_balance=Users.frozen_balance + Decimal(sum))
                 )
                 await session.execute(update_status)
-                await session.execute(update_balance_down)
                 await session.execute(update_frozen_balance_up)
                 await session.commit()
 
@@ -337,10 +334,16 @@ class TransactionDAO(BaseDAO):
                     )
                     .returning(cls.model)
                 )
+                update_balance_down = (
+                    update(Users)
+                    .where(Users.id == initiator)
+                    .values(balance=Users.balance - Decimal(sum))
+                )
                 logger.debug(
                     query.compile(engine, compile_kwargs={"literal_binds": True})
                 )
                 result = await session.execute(query)
+                await session.execute(update_balance_down)
                 await session.commit()
                 return result.scalar_one()
         

@@ -84,7 +84,7 @@ async def create(
         user_for=transaction.user_for,
         sum=transaction.sum,
         status="в ожидании",
-        creator=user.id,
+        creator=user.id
     )
 
     send_user = user_for.chat_id
@@ -143,14 +143,15 @@ async def canceled(
         raise TransactionStatusCanceled
     if current_transaction.status == "завершено":
         raise TransactionStatusСompleted
-    if current_transaction.status == "активно":
+    if current_transaction.status in ["активно", "в ожидании"]:
         await TransactionDAO.canceled(
             user_id=user.id,
             transaction_id=transaction.transaction_id,
-            status="отменено",
+            status_update="отменено",
+            current_status=current_transaction.status,
             chat_id_initiator=current_transaction.initiator_chat_id,
             chat_id_user_for=current_transaction.user_for_chat_id,
-            balance=current_transaction.sum,
+            sum=current_transaction.sum,
         )
         await TransactionDAO.update_rating(user_id=user.id)
 
@@ -223,7 +224,7 @@ async def accept(
     )
     if not current_transaction:
         raise TransactionNotFound
-    if user.id != current_transaction.initiator and user.id != current_transaction.user_for:
+    if user.id not in [current_transaction.initiator, current_transaction.user_for]:
         raise TransactionErrorInitiatorOrUserFor
     if str(current_transaction.initiator) == str(user.id):
         raise TransactionErrorInitiator
@@ -239,7 +240,7 @@ async def accept(
         status="активно",
         chat_id_initiator=current_transaction.initiator_chat_id,
         chat_id_user_for=current_transaction.user_for_chat_id,
-        balance=current_transaction.sum,
+        sum=current_transaction.sum,
     )
     send_user = current_transaction.initiator_chat_id
     if current_transaction.notification_initiator_accept == True:
@@ -305,7 +306,7 @@ async def conditions_are_met(
         status="завершено",
         chat_id_initiator=current_transaction.initiator_chat_id,
         chat_id_user_for=current_transaction.user_for_chat_id,
-        balance=current_transaction.sum,
+        sum=current_transaction.sum,
     )
     commission = current_transaction.sum * Decimal((settings.COMMISION_PERCENTAGE / 100))
     commision_result = current_transaction.sum - commission

@@ -27,20 +27,20 @@ def create_access_token(chat_id: int) -> str:
     logger.debug(encoded_jwt)
     return encoded_jwt
 
-async def send_event_to_subscribers(data: str, event: str):
-    async with AsyncRedis() as redis:
-        event_data = json.dumps({
-            "id": str(secrets.token_hex(16)),
-            "event": event,
-            "data": data
-        })
+# async def send_event_to_subscribers(data: str, event: str):
+#     async with AsyncRedis() as redis:
+#         event_data = json.dumps({
+#             "id": str(secrets.token_hex(16)),
+#             "event": event,
+#             "data": data
+#         })
 
-        subscribers = await redis.smembers("subscribers_set")
+#         subscribers = await redis.smembers("subscribers_set")
 
-        for queue in subscribers:
-            await redis.lpush(queue, event_data)
+#         for queue in subscribers:
+#             await redis.lpush(queue, event_data)
 
-        return None
+#         return None
 
 
 async def register(user_data: SUserRegisterANDlogin) -> None | SExceptionsINFO:
